@@ -44,28 +44,10 @@ class _SimulatorScreenState extends State<SimulatorScreen> {
         SliverToBoxAdapter(
           child: MaxWidthBox(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 6, 20, 16),
-              child: Container(
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardTheme.color,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Theme.of(context).dividerColor),
-                ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SegmentedButton<_SimulatorMode>(
-                    showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment(value: _SimulatorMode.plan, icon: Icon(Icons.route_rounded), label: Text('Plan de vol')),
-                      ButtonSegment(value: _SimulatorMode.camera, icon: Icon(Icons.camera_alt_rounded), label: Text('Caméra')),
-                      ButtonSegment(value: _SimulatorMode.fragments, icon: Icon(Icons.image_search_rounded), label: Text('Fragments')),
-                      ButtonSegment(value: _SimulatorMode.pipeline, icon: Icon(Icons.schema_rounded), label: Text('Traitement')),
-                    ],
-                    selected: {_mode},
-                    onSelectionChanged: (value) => setState(() => _mode = value.first),
-                  ),
-                ),
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 18),
+              child: _ModeSelector(
+                selected: _mode,
+                onSelected: (mode) => setState(() => _mode = mode),
               ),
             ),
           ),
@@ -87,6 +69,99 @@ class _SimulatorScreenState extends State<SimulatorScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+
+class _ModeSelector extends StatelessWidget {
+  const _ModeSelector({
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final _SimulatorMode selected;
+  final ValueChanged<_SimulatorMode> onSelected;
+
+  static const _items = <(_SimulatorMode, IconData, String, String)>[
+    (_SimulatorMode.plan, Icons.route_rounded, 'Plan', 'Plan de vol'),
+    (_SimulatorMode.camera, Icons.camera_alt_rounded, 'Caméra', 'Caméra'),
+    (_SimulatorMode.fragments, Icons.image_search_rounded, 'Images', 'Fragments'),
+    (_SimulatorMode.pipeline, Icons.schema_rounded, 'Process', 'Traitement'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final compact = MediaQuery.sizeOf(context).width < 560;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Row(
+        children: _items.map((item) {
+          final (mode, icon, shortLabel, fullLabel) = item;
+          final active = mode == selected;
+
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Semantics(
+                button: true,
+                selected: active,
+                label: fullLabel,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(17),
+                  onTap: () => onSelected(mode),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    constraints: const BoxConstraints(minHeight: 62),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: compact ? 4 : 10,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: active ? cyan.withOpacity(.16) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(17),
+                      border: Border.all(
+                        color: active ? cyan.withOpacity(.30) : Colors.transparent,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          icon,
+                          size: compact ? 21 : 23,
+                          color: active ? cyan : scheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(height: 5),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            compact ? shortLabel : fullLabel,
+                            maxLines: 1,
+                            style: TextStyle(
+                              color: active ? scheme.onSurface : scheme.onSurfaceVariant,
+                              fontSize: compact ? 10.5 : 12,
+                              fontWeight: active ? FontWeight.w900 : FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }
