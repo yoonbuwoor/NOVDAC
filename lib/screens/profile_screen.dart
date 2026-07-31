@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../controllers/app_controller.dart';
 import '../core/theme.dart';
@@ -66,6 +67,64 @@ class ProfileScreen extends StatelessWidget {
                   final badge = _badges[index];
                   final unlocked = badge.condition(controller);
                   return _BadgeCard(badge: badge, unlocked: unlocked);
+                },
+              ),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: MaxWidthBox(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+              child: const SectionHeading(
+                eyebrow: 'NOVATEUR221',
+                title: 'Contactez-nous',
+                subtitle: 'Échange sur DroneAtlas, une formation, un partenariat ou un projet drone.',
+              ),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: MaxWidthBox(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final wide = constraints.maxWidth >= 650;
+                  final cards = <Widget>[
+                    _ContactCard(
+                      icon: Icons.chat_rounded,
+                      color: success,
+                      title: 'WhatsApp Novateur221',
+                      subtitle: '+221 78 278 03 02',
+                      onTap: () => _openExternalLink(
+                        context,
+                        'https://wa.me/221782780302?text=Bonjour%20Novateur221%2C%20je%20vous%20contacte%20depuis%20DroneAtlas.',
+                      ),
+                    ),
+                    _ContactCard(
+                      icon: Icons.business_center_rounded,
+                      color: electricBlue,
+                      title: 'LinkedIn Novateur221',
+                      subtitle: 'Voir le profil professionnel',
+                      onTap: () => _openExternalLink(
+                        context,
+                        'https://www.linkedin.com/in/novateur-4b3820286/',
+                      ),
+                    ),
+                  ];
+                  if (wide) {
+                    return Row(
+                      children: [
+                        Expanded(child: cards[0]),
+                        const SizedBox(width: 12),
+                        Expanded(child: cards[1]),
+                      ],
+                    );
+                  }
+                  return Column(
+                    children: [cards[0], const SizedBox(height: 12), cards[1]],
+                  );
                 },
               ),
             ),
@@ -193,14 +252,12 @@ class _ProfileHeader extends StatelessWidget {
                         Expanded(
                           child: Text(
                             controller.registrationSynced
-                                ? 'Profil transmis'
-                                : 'Transmission automatique en attente',
+                                ? 'Formulaire transmis une seule fois'
+                                : 'Formulaire en attente de connexion',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: controller.registrationSynced
-                                  ? success
-                                  : orange,
+                              color: controller.registrationSynced ? success : orange,
                               fontSize: 10.5,
                               fontWeight: FontWeight.w800,
                             ),
@@ -208,41 +265,41 @@ class _ProfileHeader extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: OutlinedButton.icon(
-                        onPressed: controller.registrationSubmitting
-                            ? null
-                            : () async {
-                                final sent =
-                                    await controller.resendLearnerProfile();
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      sent
-                                          ? 'Informations envoyées à Novateur221.'
-                                          : controller.registrationError ??
-                                              'L’envoi EmailJS a échoué.',
+                    if (!controller.registrationSynced) ...[
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          onPressed: controller.registrationSubmitting
+                              ? null
+                              : () async {
+                                  final sent = await controller.sendPendingLearnerProfile();
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        sent
+                                            ? 'Informations envoyées à Novateur221.'
+                                            : controller.registrationError ?? 'L’envoi a échoué.',
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                        icon: controller.registrationSubmitting
-                            ? const SizedBox(
-                                width: 15,
-                                height: 15,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.send_rounded, size: 17),
-                        label: Text(
-                          controller.registrationSubmitting
-                              ? 'Envoi…'
-                              : 'Renvoyer les informations',
+                                  );
+                                },
+                          icon: controller.registrationSubmitting
+                              ? const SizedBox(
+                                  width: 15,
+                                  height: 15,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.send_rounded, size: 17),
+                          label: Text(
+                            controller.registrationSubmitting
+                                ? 'Envoi…'
+                                : 'Envoyer les informations',
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                     const SizedBox(height: 7),
                     Text('${controller.xp} XP • Niveau $level • Domaine : ${controller.selectedDomain}', maxLines: 2, style: const TextStyle(color: Colors.white60, fontSize: 12)),
                   ],
@@ -355,6 +412,62 @@ class _ToolCard extends StatelessWidget {
 
 
 
+class _ContactCard extends StatelessWidget {
+  const _ContactCard({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Padding(
+          padding: const EdgeInsets.all(17),
+          child: Row(
+            children: [
+              GradientIcon(icon: icon, color: color, size: 50),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 4),
+                    Text(subtitle, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.open_in_new_rounded, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> _openExternalLink(BuildContext context, String rawUrl) async {
+  final uri = Uri.parse(rawUrl);
+  final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+  if (!opened && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Impossible d’ouvrir ce lien sur le téléphone.')),
+    );
+  }
+}
+
 Future<void> _showProfileDialog(
   BuildContext context,
   AppController controller,
@@ -380,6 +493,21 @@ Future<void> _showProfileDialog(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (controller.registrationSynced) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: success.withOpacity(.10),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Text(
+                        'Le formulaire a déjà été transmis. Ces modifications seront enregistrées uniquement sur cet appareil et ne déclencheront pas un nouvel envoi.',
+                        style: TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
                   TextFormField(
                     controller: nameController,
                     enabled: !saving,

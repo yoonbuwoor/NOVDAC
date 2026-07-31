@@ -310,6 +310,38 @@ class _ContentPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Text(page.body, style: const TextStyle(fontSize: 16, height: 1.65, fontWeight: FontWeight.w500)),
+                if (page.imageAsset != null) ...[
+                  const SizedBox(height: 24),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: Image.asset(
+                        page.imageAsset!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.image_not_supported_rounded, size: 42),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (page.imageCaption != null || page.imageCredit != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      [page.imageCaption, page.imageCredit]
+                          .whereType<String>()
+                          .where((value) => value.trim().isNotEmpty)
+                          .join(' • '),
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        height: 1.35,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ],
                 if (page.visual != null) ...[
                   const SizedBox(height: 24),
                   LessonVisualCard(visual: page.visual!),

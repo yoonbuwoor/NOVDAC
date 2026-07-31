@@ -51,7 +51,7 @@ class AppController extends ChangeNotifier {
   DateTime? lastContentCheck;
   int installedContentVersion = 0;
   bool notificationsEnabled = true;
-  String reminderFrequency = 'weekly';
+  String reminderFrequency = 'daily';
   bool contentInitialized = false;
 
   bool onboardingComplete = false;
@@ -88,7 +88,7 @@ class AppController extends ChangeNotifier {
       notificationsEnabled =
           await _prefs.getBool(_notificationsEnabledKey) ?? true;
       reminderFrequency =
-          await _prefs.getString(_reminderFrequencyKey) ?? 'weekly';
+          await _prefs.getString(_reminderFrequencyKey) ?? 'daily';
 
       if (onboardingComplete && notificationsEnabled && !kIsWeb) {
         final granted = await NotificationService.instance.requestPermission();
@@ -209,12 +209,25 @@ class AppController extends ChangeNotifier {
     registrationError = null;
     notifyListeners();
 
+    final wasAlreadyTransmitted = registrationSynced;
     try {
       await _storeLearnerProfile(
         name: cleanName,
         profession: cleanProfession,
         email: cleanEmail,
+        markRegistrationPending: !wasAlreadyTransmitted,
       );
+
+      // Une modification locale ne provoque jamais un second envoi si le
+      // formulaire a déjà été transmis avec succès.
+      if (wasAlreadyTransmitted) {
+        registrationSynced = true;
+        registrationSubmitting = false;
+        await _prefs.setBool(_registrationSyncedKey, true);
+        notifyListeners();
+        return true;
+      }
+
       await _registrationService.submit(
         name: cleanName,
         profession: cleanProfession,
@@ -243,8 +256,13 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  Future<bool> resendLearnerProfile() async {
+  Future<bool> sendPendingLearnerProfile() async {
     if (registrationSubmitting) return false;
+    if (registrationSynced) {
+      registrationError = null;
+      notifyListeners();
+      return true;
+    }
     if (learnerName.trim().isEmpty ||
         learnerProfession.trim().isEmpty ||
         !_isValidEmail(learnerEmail.trim())) {
@@ -289,7 +307,7 @@ class AppController extends ChangeNotifier {
     onboardingComplete = true;
     registrationSynced = false;
     registrationError =
-        'Profil conservé sur l’appareil. Tu peux renvoyer les informations depuis le profil.';
+        'Profil conservé sur l’appareil. Une connexion sera nécessaire pour effectuer l’unique transmission.';
     await _prefs.setBool(_onboardingCompleteKey, true);
     await _prefs.setBool(_registrationSyncedKey, false);
     notifyListeners();
@@ -299,6 +317,7 @@ class AppController extends ChangeNotifier {
     required String name,
     required String profession,
     required String email,
+    bool markRegistrationPending = true,
   }) async {
     learnerName = name;
     learnerProfession = profession;
@@ -306,7 +325,10 @@ class AppController extends ChangeNotifier {
     await _prefs.setString(_learnerNameKey, name);
     await _prefs.setString(_learnerProfessionKey, profession);
     await _prefs.setString(_learnerEmailKey, email);
-    await _prefs.setBool(_registrationSyncedKey, false);
+    if (markRegistrationPending) {
+      registrationSynced = false;
+      await _prefs.setBool(_registrationSyncedKey, false);
+    }
   }
 
   Future<void> _retryPendingRegistration() async {
@@ -480,9 +502,6 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> sendTestNotification() async {
-    await NotificationService.instance.showLearningReminder();
-  }
 
   @override
   void dispose() {

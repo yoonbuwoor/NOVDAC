@@ -100,7 +100,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'BIENVENUE SUR DRONEATLAS NOVA',
+                                      'BIENVENUE SUR DRONEATLAS',
                                       style: TextStyle(
                                         color: cyan,
                                         fontSize: 12,
@@ -124,13 +124,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           const SizedBox(height: 18),
                           const Text(
-                            'Ton profil personnalise le cockpit, la progression et les recommandations. Ensuite, cours, missions, Nova Labs et Drobot restent accessibles hors connexion.',
+                            'Ton profil personnalise le cockpit, la progression et les recommandations. Ensuite, cours, missions, le laboratoire et Drobot restent accessibles hors connexion.',
                             style: TextStyle(
                               color: Colors.white70,
                               height: 1.45,
                             ),
                           ),
-                          const SizedBox(height: 22),
+                          const SizedBox(height: 16),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: electricBlue.withOpacity(.12),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: electricBlue.withOpacity(.35)),
+                            ),
+                            child: const Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(Icons.wifi_rounded, color: electricBlue, size: 20),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Une connexion Internet est nécessaire pour transmettre ce formulaire à Novateur221. Après un envoi réussi, ces informations ne seront pas renvoyées automatiquement.',
+                                    style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.45, fontWeight: FontWeight.w700),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 18),
                           TextFormField(
                             controller: _nameController,
                             enabled: !submitting,

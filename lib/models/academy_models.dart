@@ -33,6 +33,9 @@ class LessonPage {
     this.highlight,
     this.tip,
     this.visual,
+    this.imageAsset,
+    this.imageCaption,
+    this.imageCredit,
   });
 
   final String title;
@@ -40,6 +43,9 @@ class LessonPage {
   final String? highlight;
   final String? tip;
   final LessonVisual? visual;
+  final String? imageAsset;
+  final String? imageCaption;
+  final String? imageCredit;
 }
 
 enum LessonVisual {

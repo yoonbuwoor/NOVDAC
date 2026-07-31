@@ -9,12 +9,14 @@ APP = ANDROID / "app"
 manifest = APP / "src" / "main" / "AndroidManifest.xml"
 if manifest.exists():
     text = manifest.read_text(encoding="utf-8")
-    text = text.replace('android:label="droneatlas"', 'android:label="DroneAtlas Nova"')
-    text = text.replace('android:label="Droneatlas"', 'android:label="DroneAtlas Nova"')
-    text = text.replace('android:label="DroneAtlas"', 'android:label="DroneAtlas Nova"')
+    text = text.replace('android:label="droneatlas"', 'android:label="DroneAtlas"')
+    text = text.replace('android:label="Droneatlas"', 'android:label="DroneAtlas"')
+    text = text.replace('android:label="DroneAtlas"', 'android:label="DroneAtlas"')
     permissions = [
         'android.permission.INTERNET',
         'android.permission.POST_NOTIFICATIONS',
+        'android.permission.ACCESS_COARSE_LOCATION',
+        'android.permission.ACCESS_FINE_LOCATION',
     ]
     for permission in permissions:
         marker = f'<uses-permission android:name="{permission}" />'
@@ -111,4 +113,4 @@ if wrapper.exists():
     )
     wrapper.write_text(text, encoding="utf-8")
 
-print("Configuration Android DroneAtlas Nova (notifications + mises à jour) appliquée.")
+print("Configuration Android DroneAtlas (notifications, localisation et mises à jour) appliquée.")

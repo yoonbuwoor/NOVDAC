@@ -44,7 +44,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
               child: BrandBar(
                 isDark: widget.isDark,
                 onToggleTheme: widget.onToggleTheme,
-                title: 'Nova Labs',
+                title: 'Laboratoire',
                 subtitle: 'Planifie, calcule, simule et contrôle une mission complète',
               ),
             ),
@@ -345,7 +345,7 @@ class _LabHero extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Pill(
-                      label: 'NOVA MISSION CONTROL',
+                      label: 'MISSION CONTROL',
                       icon: Icons.science_rounded,
                       color: cyan,
                     ),

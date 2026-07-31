@@ -34,7 +34,6 @@ class RegistrationService {
       );
     }
 
-    final now = DateTime.now().toUtc().toIso8601String();
     final cleanName = name.trim();
     final cleanProfession = profession.trim();
     final cleanEmail = email.trim().toLowerCase();
@@ -52,29 +51,16 @@ class RegistrationService {
               'template_id': EmailJsConfig.templateId,
               'user_id': EmailJsConfig.publicKey,
               'template_params': <String, String>{
-                // Variables principales du modèle EmailJS « Contact Us ».
+                // Le modèle EmailJS utilise uniquement ces trois champs.
                 'name': cleanName,
                 'profession': cleanProfession,
                 'email': cleanEmail,
-                'date': now,
-                'time': now,
-                'title': 'Nouvelle inscription DroneAtlas',
-                'message': 'Nom : $cleanName\n'
-                    'Profession : $cleanProfession\n'
-                    'E-mail : $cleanEmail\n'
-                    'Date : $now',
 
-                // Variables de destination et alias utiles si le modèle évolue.
+                // Paramètres standards utiles pour la destination et la réponse.
                 'to_email': EmailJsConfig.receiverEmail,
                 'to_name': 'Novateur221',
                 'from_name': cleanName,
                 'reply_to': cleanEmail,
-                'user_name': cleanName,
-                'user_profession': cleanProfession,
-                'user_email': cleanEmail,
-                'application_name': 'DroneAtlas Nova',
-                'submitted_at': now,
-                'subject': 'Nouvelle inscription DroneAtlas — $cleanName',
               },
             }),
           )

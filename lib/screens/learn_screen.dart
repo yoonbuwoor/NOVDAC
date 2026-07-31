@@ -62,7 +62,7 @@ class _LearnScreenState extends State<LearnScreen> {
               isDark: widget.isDark,
               onToggleTheme: widget.onToggleTheme,
               title: 'Académie',
-              subtitle: '12 modules • drone, capteurs, SIG, IA et métier',
+              subtitle: '${modules.length} modules • drone, capteurs, SIG, IA et métier',
             ),
           ),
         ),

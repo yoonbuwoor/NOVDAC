@@ -41,7 +41,7 @@ void droneAtlasCallbackDispatcher() {
       contentService.dispose();
     }
 
-    final frequency = await prefs.getString(_reminderFrequencyKey) ?? 'weekly';
+    final frequency = await prefs.getString(_reminderFrequencyKey) ?? 'daily';
     if (frequency != 'off') {
       final now = DateTime.now();
       final rawLastReminder = await prefs.getString(_lastReminderKey);

@@ -1,4 +1,4 @@
-/// Configuration EmailJS de DroneAtlas Nova.
+/// Configuration EmailJS de DroneAtlas.
 ///
 /// Ces identifiants sont des identifiants publics côté client EmailJS.
 /// Ils permettent à l'application d'envoyer le mini-formulaire d'inscription.

@@ -136,7 +136,7 @@ class BrandBar extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        title ?? 'DroneAtlas Nova',
+                        title ?? 'DroneAtlas',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -146,10 +146,6 @@ class BrandBar extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (title == null) ...[
-                      const SizedBox(width: 8),
-                      const NovaDot(label: '3.0'),
-                    ],
                   ],
                 ),
                 const SizedBox(height: 3),

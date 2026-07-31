@@ -1075,6 +1075,201 @@ const modules = <AcademyModule>[
       ),
     ],
   ),
+  AcademyModule(
+    id: 'histoire_plateformes',
+    number: '13',
+    title: 'Histoire, plateformes & marché',
+    subtitle: 'Comprendre l’évolution des drones et choisir une plateforme actuelle.',
+    icon: Icons.history_edu_rounded,
+    accent: Color(0xFF18B7FF),
+    lessons: [
+      Lesson(
+        id: 'histoire_pionniers',
+        title: 'Des pionniers aux UAV modernes',
+        duration: '16 min',
+        summary: 'Un siècle d’évolution entre automatisation, radiocommande et télédétection.',
+        icon: Icons.timeline_rounded,
+        pages: [
+          LessonPage(
+            title: 'Avant le drone civil',
+            body: 'Les premiers aéronefs sans pilote du début du XXe siècle étaient des expérimentations militaires ou des engins guidés. Le Kettering Bug, développé aux États-Unis pendant la Première Guerre mondiale, illustre cette recherche d’un aéronef capable de suivre automatiquement une trajectoire avant l’arrivée du GNSS, des microprocesseurs et des liaisons numériques.',
+            imageAsset: 'assets/images/history_kettering.webp',
+            imageCaption: 'Kettering Aerial Torpedo, souvent surnommé « Kettering Bug ».',
+            imageCredit: 'Greg Hume • CC BY-SA 3.0 • Wikimedia Commons',
+            highlight: 'Ces systèmes n’étaient pas des quadricoptères : l’histoire du drone regroupe plusieurs familles d’aéronefs sans pilote.',
+          ),
+          LessonPage(
+            title: 'La radiocommande et les cibles volantes',
+            body: 'Au milieu du XXe siècle, les drones-cibles et appareils de reconnaissance ont accéléré les progrès de la radiocommande, de la navigation et de la récupération. La famille Ryan Firebee est devenue une référence de cette période. Elle montre comment un aéronef sans pilote pouvait déjà emporter des équipements, suivre une mission et revenir pour être récupéré.',
+            imageAsset: 'assets/images/history_firebee.webp',
+            imageCaption: 'AQM-34 Firebee utilisé comme plateforme sans pilote.',
+            imageCredit: 'U.S. Air Force • Domaine public',
+          ),
+          LessonPage(
+            title: 'Endurance et observation à distance',
+            body: 'Dans les années 1990, des systèmes comme le MQ-1 Predator ont popularisé l’image du drone d’endurance piloté à distance, équipé de capteurs et relié à une station au sol. Cette génération a renforcé les domaines de la transmission de données, du suivi de trajectoire, de la stabilisation optique et de l’exploitation d’images géolocalisées.',
+            imageAsset: 'assets/images/history_predator.webp',
+            imageCaption: 'MQ-1 Predator en vol.',
+            imageCredit: 'U.S. Air Force, photo Lt Col Leslie Pratt • Domaine public',
+            tip: 'Distingue toujours l’usage historique d’une technologie de ses usages civils actuels en cartographie, agriculture, inspection ou secours.',
+          ),
+          LessonPage(
+            title: 'La révolution civile',
+            body: 'Les moteurs électriques efficaces, les batteries lithium, les centrales inertielles miniaturisées, le GNSS, les smartphones et les nacelles stabilisées ont rendu les multirotors simples à piloter. Au début des années 2010, les familles comme DJI Phantom ont contribué à démocratiser la photographie aérienne. Le drone est alors devenu un outil de création, de mesure et de travail.',
+            imageAsset: 'assets/images/history_phantom.webp',
+            imageCaption: 'Un DJI Phantom, symbole de la démocratisation des multirotors civils.',
+            imageCredit: 'Maurizio Pesce • CC BY 2.0 • Wikimedia Commons',
+          ),
+          LessonPage(
+            title: 'Du vol à la donnée',
+            body: 'Le changement majeur n’est pas seulement la facilité de pilotage. Les images sont désormais intégrées à des workflows complets : planification automatique, RTK/PPK, photogrammétrie, nuages de points, orthomosaïques, modèles 3D, analyse thermique, multispectrale ou LiDAR. Le télépilote moderne doit comprendre la machine, le capteur, la donnée et la décision finale.',
+            highlight: 'Un drone professionnel est un système de collecte de données, pas uniquement une caméra volante.',
+          ),
+        ],
+        question: 'Quel ensemble de progrès a surtout permis la démocratisation des multirotors civils ?',
+        answers: ['Batteries, GNSS, capteurs inertiels et électronique miniaturisée', 'Uniquement la peinture des hélices', 'La disparition de toute réglementation', 'Un seul type de caméra argentique'],
+        correctAnswer: 0,
+        explanation: 'La miniaturisation de l’électronique, le GNSS, les batteries et la stabilisation ont rendu les plateformes compactes et accessibles.',
+      ),
+      Lesson(
+        id: 'types_drones_modernes',
+        title: 'Les grandes familles de drones',
+        duration: '15 min',
+        summary: 'Multirotor, aile fixe, VTOL, FPV, captif et inspection intérieure.',
+        icon: Icons.account_tree_rounded,
+        pages: [
+          LessonPage(
+            title: 'Multirotors',
+            body: 'Les quadricoptères, hexacoptères et octocoptères décollent verticalement, restent en vol stationnaire et manœuvrent précisément. Ils sont efficaces pour les petites et moyennes surfaces, l’inspection rapprochée, la modélisation de bâtiments et les charges utiles interchangeables. Leur limite principale est l’autonomie comparée à une aile fixe.',
+            visual: LessonVisual.droneParts,
+          ),
+          LessonPage(
+            title: 'Ailes fixes',
+            body: 'Une aile fixe génère de la portance en avançant. Elle couvre rapidement de grandes surfaces avec une meilleure efficacité énergétique. Elle convient à l’agriculture, aux corridors et aux grands levés. En contrepartie, elle a besoin d’une procédure de lancement et de récupération adaptée et ne peut pas rester stationnaire.',
+          ),
+          LessonPage(
+            title: 'VTOL hybrides',
+            body: 'Le VTOL combine décollage vertical et vol de croisière d’une aile. Il facilite les opérations sur des sites sans piste tout en conservant une bonne couverture. Son architecture, sa maintenance et sa planification sont généralement plus complexes qu’un multirotor classique.',
+            highlight: 'Pour une grande emprise morcelée, le VTOL peut être un compromis intéressant entre logistique et endurance.',
+          ),
+          LessonPage(
+            title: 'FPV, cinewhoop et drones spécialisés',
+            body: 'Le FPV privilégie la réactivité et une vue immersive. Le cinewhoop est protégé pour filmer près des sujets. Les drones d’intérieur avec cage inspectent tunnels, cuves et bâtiments sans GNSS. Les drones captifs reçoivent énergie et données par câble pour rester longtemps en position. Chaque famille répond à une mission précise.',
+          ),
+          LessonPage(
+            title: 'Une matrice de choix',
+            body: 'Compare au minimum : surface, relief, vent, obstacles, besoin de stationnaire, précision, charge utile, autonomie réelle, disponibilité des batteries, logiciel de mission, formats d’export, maintenance, pièces et support local. La marque vient après le besoin et le risque.',
+            tip: 'Écris les critères dans un tableau pondéré avant de choisir une plateforme coûteuse.',
+          ),
+        ],
+        question: 'Quelle plateforme est généralement la plus efficace pour une très grande surface ouverte ?',
+        answers: ['Une aile fixe ou un VTOL adapté', 'Un micro-cinewhoop', 'Un drone captif immobile', 'Un multirotor sans planification'],
+        correctAnswer: 0,
+        explanation: 'L’aile fixe et le VTOL utilisent mieux l’énergie en croisière et couvrent davantage de terrain.',
+      ),
+      Lesson(
+        id: 'marques_plateformes_actuelles',
+        title: 'Marques et plateformes actuelles',
+        duration: '18 min',
+        summary: 'Repères du marché professionnel pour cartographie et inspection.',
+        icon: Icons.precision_manufacturing_rounded,
+        pages: [
+          LessonPage(
+            title: 'Cartographie multirotor',
+            body: 'DJI propose notamment les familles Matrice 4 Enterprise et Mavic 3 Enterprise pour des usages professionnels de cartographie et d’inspection. Elles illustrent l’intégration d’une caméra adaptée, de la planification automatisée et, selon la configuration, d’un positionnement précis. Le choix doit rester basé sur le GSD, l’obturateur, le RTK, l’autonomie et les formats de production.',
+            tip: 'Ne confonds pas précision annoncée de positionnement et précision finale du produit : contrôle avec des checkpoints.',
+          ),
+          LessonPage(
+            title: 'Inspection et opérations avancées',
+            body: 'Autel Robotics EVO Max 4T et Skydio X10 représentent des plateformes orientées inspection, sécurité et collecte multi-capteurs. Parrot ANAFI Ai met en avant une architecture connectée et des usages de cartographie. Les caractéristiques et disponibilités changent : consulte toujours les documents officiels avant une décision d’achat.',
+          ),
+          LessonPage(
+            title: 'Grande couverture en VTOL',
+            body: 'WingtraRAY et WingtraOne GEN II, ainsi que Quantum Systems Trinity Pro, sont des exemples de VTOL conçus pour couvrir de grandes zones. Leur intérêt se juge sur la surface quotidienne, la précision, le vent, la charge utile, le temps de préparation, la chaîne PPK et la facilité de récupération.',
+          ),
+          LessonPage(
+            title: 'Espaces confinés',
+            body: 'Flyability Elios 3 illustre une autre catégorie : le drone d’inspection intérieure protégé par une cage, conçu pour évoluer dans des espaces difficiles et sans GNSS. Ici, l’objectif n’est pas de couvrir des hectares mais d’accéder à des zones dangereuses tout en collectant image et géométrie.',
+          ),
+          LessonPage(
+            title: 'Acheter intelligemment',
+            body: 'Évalue le coût total : batteries, chargeurs, capteurs, licences, formation, assurance, pièces, réparations, ordinateur, stockage et temps de traitement. Vérifie aussi la souveraineté des données, le mode hors ligne, les mises à jour, l’export vers QGIS et les compétences disponibles localement.',
+            highlight: 'La meilleure plateforme est celle dont toute la chaîne — terrain, traitement, contrôle et maintenance — est maîtrisée.',
+          ),
+        ],
+        question: 'Quel critère est le plus fiable pour choisir une marque ?',
+        answers: ['L’adéquation entre mission, capteur, support et chaîne de données', 'Le logo le plus connu uniquement', 'La vitesse maximale uniquement', 'Le nombre de publicités'],
+        correctAnswer: 0,
+        explanation: 'Le choix professionnel doit couvrir le besoin, la qualité des données, le support et le coût total.',
+      ),
+      Lesson(
+        id: 'mission_50ha_complete',
+        title: 'Planifier 50 hectares de bout en bout',
+        duration: '22 min',
+        summary: 'Transformer une surface en plan de mission, batteries et contrôle qualité.',
+        icon: Icons.route_rounded,
+        pages: [
+          LessonPage(
+            title: '1. Partir du livrable',
+            body: 'Avant de dessiner une grille, précise l’usage : orthophoto, courbes de niveau, cubature, inventaire ou modèle 3D. Le livrable fixe le GSD cible, la précision, le type de géoréférencement et la quantité de contrôle indépendant. Une surface de 50 ha ne suffit pas à définir une mission.',
+          ),
+          LessonPage(
+            title: '2. Hypothèse pédagogique',
+            body: 'Prenons une zone approximativement carrée de 50 ha, une altitude de 100 m, un capteur 13,2 × 8,8 mm avec focale 8,8 mm, une image de 5472 pixels, des recouvrements 80/70 % et une vitesse de 8 m/s. L’empreinte théorique est proche de 150 × 100 m et le GSD proche de 2,7 cm/pixel.',
+            visual: LessonVisual.gsd,
+            highlight: 'Drobot sait maintenant effectuer ce calcul et détailler le plan complet à partir d’une surface en hectares.',
+          ),
+          LessonPage(
+            title: '3. Lignes, images et batteries',
+            body: 'Avec ces hypothèses et une emprise carrée, l’espacement latéral est d’environ 45 m et le déclenchement tous les 20 m. Une estimation donne environ 17 lignes, près de 680 images avec marge, environ 13,8 km de trajectoire et 33 minutes de vol théorique. Prévois deux batteries opérationnelles si 20 minutes sont réellement utilisables, plus une réserve.',
+            visual: LessonVisual.flightPlan,
+            tip: 'La forme réelle de la parcelle et les virages peuvent changer fortement le temps de vol.',
+          ),
+          LessonPage(
+            title: '4. GCP et checkpoints',
+            body: 'Répartis les points de contrôle dans la zone et près des bords, sans tous les aligner. Sépare clairement les points qui ajustent le modèle des checkpoints qui évaluent l’erreur. Si le drone fournit du RTK/PPK, conserve quand même des checkpoints indépendants adaptés à l’exigence du projet.',
+            visual: LessonVisual.quality,
+          ),
+          LessonPage(
+            title: '5. Exécution et contrôle',
+            body: 'Prépare météo, autorisations, zones de secours et ordre des batteries. Fais un court vol test. Contrôle netteté à 100 %, exposition, couverture des bords, recouvrement, journaux GNSS et absence de trous. Sauvegarde immédiatement les données puis documente les paramètres et incidents avant traitement.',
+            highlight: 'Une mission bien planifiée inclut le contrôle après vol et le traitement, pas seulement la trajectoire.',
+          ),
+        ],
+        question: 'Pourquoi l’estimation de 50 ha doit-elle être adaptée au terrain réel ?',
+        answers: ['La forme, le relief, le vent et le drone modifient lignes, durée et batteries', 'La surface ne joue aucun rôle', 'Les photos ont toujours la même taille au sol', 'Les virages ne consomment jamais de temps'],
+        correctAnswer: 0,
+        explanation: 'Une estimation carrée est un point de départ ; la géométrie, le relief et les contraintes opérationnelles modifient la mission.',
+      ),
+      Lesson(
+        id: 'avenir_drones',
+        title: 'Tendances et compétences d’avenir',
+        duration: '12 min',
+        summary: 'Autonomie, IA embarquée, essaims et intégration SIG responsable.',
+        icon: Icons.auto_awesome_rounded,
+        pages: [
+          LessonPage(
+            title: 'Plus d’autonomie décisionnelle',
+            body: 'Les drones automatisent davantage la détection d’obstacles, le suivi de terrain, la sélection de trajectoires et certains contrôles de qualité. Cette autonomie ne supprime pas le besoin d’un opérateur compétent : elle déplace le travail vers la définition de la mission, la supervision et la gestion des exceptions.',
+          ),
+          LessonPage(
+            title: 'IA embarquée et traitement rapide',
+            body: 'La détection d’objets, la segmentation et le tri d’images peuvent commencer sur le terrain. Le défi est de valider les modèles, comprendre les faux positifs et conserver une trace des décisions. Une carte rapide mais fausse peut être plus dangereuse qu’une carte livrée plus tard.',
+          ),
+          LessonPage(
+            title: 'Une compétence hybride',
+            body: 'Le professionnel de demain combine sécurité aérienne, photographie, GNSS, photogrammétrie, SIG, programmation, analyse métier, communication et éthique. Le drone reste un maillon d’une chaîne de décision plus large.',
+            highlight: 'Apprends à expliquer les limites aussi bien que les résultats.',
+          ),
+        ],
+        question: 'Quel rôle humain reste essentiel avec davantage d’autonomie ?',
+        answers: ['Définir, superviser, valider et gérer les exceptions', 'Ne plus contrôler aucun résultat', 'Ignorer la réglementation', 'Supprimer toute documentation'],
+        correctAnswer: 0,
+        explanation: 'L’automatisation augmente le besoin de supervision, de validation et de responsabilité.',
+      ),
+    ],
+  ),
+
 ];
 
 const domains = <ApplicationDomain>[
@@ -1609,6 +1804,11 @@ const glossary = <GlossaryEntry>[
   GlossaryEntry('Segmentation', 'Attribution d’une classe à chaque pixel ou groupe de pixels d’une image.', 'IA'),
   GlossaryEntry('Boresight', 'Orientation relative entre un capteur et la centrale inertielle, calibrée pour la géométrie.', 'LiDAR'),
   GlossaryEntry('COG', 'Cloud Optimized GeoTIFF : GeoTIFF organisé pour un accès efficace par portions.', 'Format'),
+  GlossaryEntry('VTOL', 'Vertical Take-Off and Landing : aéronef capable de décoller et d’atterrir verticalement puis, selon le modèle, de voler comme une aile.', 'Drone'),
+  GlossaryEntry('Rafale', 'Augmentation brève de la vitesse du vent pouvant dépasser largement la moyenne et déstabiliser le drone.', 'Météo'),
+  GlossaryEntry('RTH', 'Return To Home : procédure automatique de retour vers un point enregistré, avec hauteur et comportement à configurer.', 'Sécurité'),
+  GlossaryEntry('Visibilité', 'Distance à laquelle le télépilote peut distinguer l’aéronef et son environnement ; elle dépend aussi du brouillard, des poussières et de la lumière.', 'Météo'),
+  GlossaryEntry('Drone captif', 'Drone relié au sol par un câble pouvant fournir énergie et communication pour une présence prolongée.', 'Drone'),
 ];
 
 int get totalLessonCount => modules.fold(0, (total, module) => total + module.lessons.length);

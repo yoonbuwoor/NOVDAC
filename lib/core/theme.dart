@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// DroneAtlas Nova design system. Existing names are intentionally preserved so
+// DroneAtlas design system. Existing names are intentionally preserved so
 // older screens and downloadable lessons remain compatible.
 const navy = Color(0xFF040A12);
 const deepNavy = Color(0xFF071523);

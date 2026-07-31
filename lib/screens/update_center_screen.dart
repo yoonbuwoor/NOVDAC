@@ -73,7 +73,7 @@ class UpdateCenterScreen extends StatelessWidget {
                         subtitle: Padding(
                           padding: const EdgeInsets.only(top: 5),
                           child: Text(
-                            '${course.category} • ${course.duration} • v${course.version}',
+                            '${course.category} • ${course.duration}',
                           ),
                         ),
                         trailing: const Icon(
@@ -282,17 +282,10 @@ class _CatalogCard extends StatelessWidget {
         child: Column(
           children: [
             _ValueRow(
-              label: 'Version installée',
-              value: controller.installedContentVersion == 0
-                  ? 'Contenu intégré'
-                  : '${controller.installedContentVersion}',
-            ),
-            const Divider(height: 24),
-            _ValueRow(
-              label: 'Version disponible',
-              value: manifest == null
-                  ? 'Application à jour'
-                  : '${manifest.contentVersion}',
+              label: 'État du catalogue',
+              value: controller.updateAvailable
+                  ? 'Nouveaux contenus disponibles'
+                  : 'Application à jour',
             ),
             const Divider(height: 24),
             _ValueRow(
@@ -420,20 +413,6 @@ class _NotificationCard extends StatelessWidget {
                       }
                     : null,
               ),
-            ),
-            const Divider(height: 1),
-            ListTile(
-              enabled: controller.notificationsEnabled,
-              leading: const Icon(
-                Icons.notification_add_rounded,
-                color: cyan,
-              ),
-              title: const Text('Tester une notification'),
-              subtitle: const Text('Envoie immédiatement un rappel local.'),
-              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-              onTap: controller.notificationsEnabled
-                  ? () => controller.sendTestNotification()
-                  : null,
             ),
           ],
         ),

@@ -9,8 +9,8 @@ SOURCE_ICON = ROOT / "assets" / "icon" / "droneatlas_icon.png"
 index = WEB / "index.html"
 if index.exists():
     text = index.read_text(encoding="utf-8")
-    text = text.replace("<title>droneatlas</title>", "<title>DroneAtlas Nova</title>")
-    text = text.replace('content="droneatlas"', 'content="DroneAtlas Nova"')
+    text = text.replace("<title>droneatlas</title>", "<title>DroneAtlas</title>")
+    text = text.replace('content="droneatlas"', 'content="DroneAtlas"')
     text = text.replace(
         '<meta name="description" content="A new Flutter project.">',
         '<meta name="description" content="Apprendre les drones et la photogrammétrie par la simulation.">',
@@ -21,7 +21,7 @@ manifest_path = WEB / "manifest.json"
 if manifest_path.exists():
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest.update({
-        "name": "DroneAtlas Nova",
+        "name": "DroneAtlas",
         "short_name": "DroneAtlas",
         "description": "Académie interactive pour apprendre les drones et la photogrammétrie.",
         "background_color": "#06131F",

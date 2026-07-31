@@ -35,12 +35,11 @@ class _DrobotAssistantSheetState extends State<DrobotAssistantSheet> {
   final List<_DrobotMessage> _messages = <_DrobotMessage>[
     const _DrobotMessage(
       fromUser: false,
-      text: 'Bonjour 👋 Je suis Drobot Nova, ton copilote expert. Je maîtrise le pilotage, la photographie aérienne, la photogrammétrie, le SIG, les GCP/RTK/PPK, le LiDAR, le multispectral, la thermique, l’IA géospatiale, le contrôle qualité et la préparation d’une activité professionnelle.\n\nDécris ton objectif, ta zone, ton capteur ou ton problème : je te proposerai une méthode, des contrôles et les pièges à éviter.',
-      source: 'Drobot Nova • Expert embarqué',
+      text: 'Bonjour 👋 Je suis Drobot, ton copilote expert. Donne-moi une surface, un objectif, un drone ou un problème : je peux construire une méthode complète, faire des estimations, proposer une checklist et expliquer les contrôles qualité.\n\nExemple : « Planifie une mission photogrammétrique de 50 ha à 100 m ».',
+      source: 'Drobot • Expert embarqué',
     ),
   ];
 
-  String _activeTopic = 'Planification';
   bool _isThinking = false;
 
   @override
@@ -117,7 +116,6 @@ class _DrobotAssistantSheetState extends State<DrobotAssistantSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    final topicSuggestions = drobotTopicSuggestions[_activeTopic] ?? const <String>[];
 
     return Container(
       decoration: BoxDecoration(
@@ -140,10 +138,6 @@ class _DrobotAssistantSheetState extends State<DrobotAssistantSheet> {
             ),
             _Header(onClear: _clearConversation),
             const Divider(height: 1),
-            _TopicBar(
-              activeTopic: _activeTopic,
-              onSelected: (value) => setState(() => _activeTopic = value),
-            ),
             Expanded(
               child: ListView.builder(
                 controller: _scrollController,
@@ -167,12 +161,12 @@ class _DrobotAssistantSheetState extends State<DrobotAssistantSheet> {
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
-                  itemCount: topicSuggestions.length,
+                  itemCount: drobotQuickSuggestions.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (context, index) => ActionChip(
                     avatar: const Icon(Icons.auto_awesome_rounded, size: 16),
-                    label: Text(topicSuggestions[index]),
-                    onPressed: () => _send(topicSuggestions[index]),
+                    label: Text(drobotQuickSuggestions[index]),
+                    onPressed: () => _send(drobotQuickSuggestions[index]),
                   ),
                 ),
               ),
@@ -217,7 +211,7 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Drobot Nova',
+                  'Drobot',
                   style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900, letterSpacing: -.4),
                 ),
                 const SizedBox(height: 3),
@@ -250,35 +244,6 @@ class _Header extends StatelessWidget {
             icon: const Icon(Icons.close_rounded),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _TopicBar extends StatelessWidget {
-  const _TopicBar({required this.activeTopic, required this.onSelected});
-
-  final String activeTopic;
-  final ValueChanged<String> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final topics = drobotTopicSuggestions.keys.toList();
-    return SizedBox(
-      height: 52,
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 9, 16, 7),
-        scrollDirection: Axis.horizontal,
-        itemCount: topics.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 7),
-        itemBuilder: (context, index) {
-          final topic = topics[index];
-          return ChoiceChip(
-            label: Text(topic),
-            selected: activeTopic == topic,
-            onSelected: (_) => onSelected(topic),
-          );
-        },
       ),
     );
   }

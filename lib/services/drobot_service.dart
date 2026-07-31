@@ -24,12 +24,13 @@ class DrobotService {
       );
     }
 
-    final local = _offlineAnswer(cleanQuestion);
+    final contextualQuestion = _withConversationContext(cleanQuestion, history);
+    final local = _offlineAnswer(contextualQuestion);
     if (!DrobotConfig.onlineEnabled) return local;
 
     try {
       final remote = await _onlineAnswer(
-        question: cleanQuestion,
+        question: contextualQuestion,
         history: history,
         offlineContext: local.text,
       );
@@ -47,12 +48,15 @@ class DrobotService {
   DrobotReply _offlineAnswer(String question) {
     final normalized = _normalize(question);
 
+    final missionPlan = _tryMissionPlanner(normalized, question);
+    if (missionPlan != null) return missionPlan;
+
     final calculator = _tryCalculator(normalized, question);
     if (calculator != null) return calculator;
 
     if (_containsAny(normalized, <String>['bonjour', 'bonsoir', 'salut', 'hello', 'coucou'])) {
       return const DrobotReply(
-        text: 'Bonjour 👋 Je suis Drobot, le copilote expert de DroneAtlas Nova. Je peux t’aider sur le pilotage, la sécurité, la photo aérienne, la planification, le GSD, les GCP, le RTK/PPK, le traitement photogrammétrique, QGIS, les capteurs et les rapports.\n\nPose une question précise ou choisis un sujet rapide ci-dessous.',
+        text: 'Bonjour 👋 Je suis Drobot. Je peux analyser une mission complète, estimer un plan de vol, expliquer les drones actuels, diagnostiquer un problème de traitement et préparer une checklist terrain.\n\nEssaie : « Planifie une mission photogrammétrique de 50 ha à 100 m ».',
         source: 'Drobot',
         suggestions: <String>[
           'Planifier une mission complète',
@@ -143,7 +147,7 @@ class DrobotService {
 
     return DrobotReply(
       text: buffer.toString().trim(),
-      source: 'Base experte • ${first.category}',
+      source: 'Base experte Drobot',
       suggestions: suggestions,
     );
   }
@@ -215,6 +219,141 @@ class DrobotService {
       if (first['text'] is String) return first['text'] as String;
     }
     return null;
+  }
+
+  String _withConversationContext(
+    String question,
+    List<DrobotTurn> history,
+  ) {
+    final normalized = _normalize(question);
+    final isFollowUp = normalized.length < 45 && _containsAny(normalized, <String>[
+      'continue',
+      'vas y',
+      'fais le',
+      'detaille',
+      'adapte',
+      'et pour',
+      'avec mon',
+      'sans gcp',
+      'montre moi',
+      'donne les calculs',
+    ]);
+    if (!isFollowUp || history.isEmpty) return question;
+
+    for (final turn in history.reversed) {
+      if (turn.role == 'user' && turn.content.trim().isNotEmpty) {
+        return '${turn.content.trim()}\nPrécision de suivi : $question';
+      }
+    }
+    return question;
+  }
+
+  DrobotReply? _tryMissionPlanner(String normalized, String original) {
+    final hectares = _extractHectares(original);
+    final missionIntent = _containsAny(normalized, <String>[
+      'planifier',
+      'plan de vol',
+      'mission photogrammetrique',
+      'mission de',
+      'cartographier',
+      'couvrir',
+    ]);
+    if (hectares == null || !missionIntent || hectares <= 0) return null;
+
+    final altitude = _labeledNumber(original, <String>['altitude', 'hauteur']) ?? 100;
+    final frontOverlap = (_labeledNumber(
+              original,
+              <String>['recouvrement longitudinal', 'recouvrement avant', 'frontal'],
+            ) ??
+            80)
+        .clamp(50, 95)
+        .toDouble();
+    final sideOverlap = (_labeledNumber(
+              original,
+              <String>['recouvrement lateral', 'latéral', 'lateral'],
+            ) ??
+            70)
+        .clamp(40, 90)
+        .toDouble();
+    final flightSpeed = (_labeledNumber(original, <String>['vitesse', 'speed']) ?? 8)
+        .clamp(2, 20)
+        .toDouble();
+    final sensorWidthMm =
+        _labeledNumber(original, <String>['largeur capteur', 'capteur']) ?? 13.2;
+    final sensorHeightMm =
+        _labeledNumber(original, <String>['hauteur capteur']) ?? 8.8;
+    final focalMm = _labeledNumber(original, <String>['focale', 'focal']) ?? 8.8;
+    final imageWidthPx =
+        _labeledNumber(original, <String>['largeur image', 'pixels', 'image']) ?? 5472;
+
+    if (altitude <= 0 || focalMm <= 0 || imageWidthPx <= 0) return null;
+
+    final areaM2 = hectares * 10000;
+    final approximateSideM = math.sqrt(areaM2);
+    final footprintWidthM = altitude * sensorWidthMm / focalMm;
+    final footprintHeightM = altitude * sensorHeightMm / focalMm;
+    final lineSpacingM = footprintWidthM * (1 - sideOverlap / 100);
+    final photoSpacingM = footprintHeightM * (1 - frontOverlap / 100);
+    if (lineSpacingM <= 0 || photoSpacingM <= 0) return null;
+
+    final lineCount = math.max(2, (approximateSideM / lineSpacingM).ceil() + 1);
+    final photosPerLine = math.max(2, (approximateSideM / photoSpacingM).ceil() + 1);
+    final rawPhotoCount = lineCount * photosPerLine;
+    final estimatedPhotos = (rawPhotoCount * 1.08).ceil();
+    final routeDistanceM =
+        (lineCount * approximateSideM + (lineCount - 1) * lineSpacingM) * 1.08;
+    final flightMinutes = routeDistanceM / flightSpeed / 60 + 4;
+    final usableMinutesPerBattery = 20.0;
+    final operationalBatteries = math.max(1, (flightMinutes / usableMinutesPerBattery).ceil());
+    final storageGb = estimatedPhotos * 8 / 1024;
+    final gsdCm = altitude * sensorWidthMm * 100 / (focalMm * imageWidthPx);
+
+    final buffer = StringBuffer()
+      ..writeln('**Plan opérationnel estimatif — ${_fmt(hectares)} ha**')
+      ..writeln()
+      ..writeln('Hypothèses utilisées : altitude ${_fmt(altitude)} m, recouvrements ${_fmt(frontOverlap, 0)}/${_fmt(sideOverlap, 0)} %, vitesse ${_fmt(flightSpeed)} m/s, capteur ${_fmt(sensorWidthMm)} × ${_fmt(sensorHeightMm)} mm, focale ${_fmt(focalMm)} mm.')
+      ..writeln()
+      ..writeln('Résultats géométriques :')
+      ..writeln('• GSD théorique : ${_fmt(gsdCm, 2)} cm/pixel')
+      ..writeln('• Empreinte d’une image : ${_fmt(footprintWidthM, 0)} × ${_fmt(footprintHeightM, 0)} m')
+      ..writeln('• Espacement des lignes : ${_fmt(lineSpacingM, 1)} m')
+      ..writeln('• Déclenchement environ tous les ${_fmt(photoSpacingM, 1)} m')
+      ..writeln('• Environ $lineCount lignes et $estimatedPhotos images avec marge')
+      ..writeln('• Distance de trajectoire : ${_fmt(routeDistanceM / 1000, 1)} km')
+      ..writeln('• Temps de vol théorique : ${_fmt(flightMinutes, 0)} min')
+      ..writeln('• Batteries : $operationalBatteries opérationnelle(s) + 1 réserve')
+      ..writeln('• Stockage indicatif : ${_fmt(storageGb, 1)} Go si une photo pèse environ 8 Mo')
+      ..writeln()
+      ..writeln('Préparation terrain :')
+      ..writeln('1. Dessine l’emprise réelle et ajoute une marge de bord de 20 à 40 m.')
+      ..writeln('2. Oriente les longues lignes selon la forme du terrain et évite un vent de face permanent.')
+      ..writeln('3. Vérifie relief, obstacles, espace aérien, personnes et zones d’atterrissage de secours.')
+      ..writeln('4. Place des GCP si le projet l’exige et réserve des checkpoints indépendants pour mesurer l’erreur.')
+      ..writeln('5. Découpe la mission en blocs si le retour automatique, le relief ou la batterie rendent une seule grille risquée.')
+      ..writeln('6. Lance un court vol test, inspecte netteté, exposition, recouvrement et géolocalisation, puis démarre la production.')
+      ..writeln('7. Sur le terrain, sauvegarde les images et note météo, batteries, incidents et paramètres.')
+      ..writeln()
+      ..writeln('Contrôle après vol : images nettes à 100 %, aucune rupture de grille, recouvrement réel cohérent, journal GNSS complet et couverture des bords.')
+      ..writeln()
+      ..writeln('⚠️ C’est une estimation pédagogique pour une emprise approximativement carrée. Donne-moi le modèle exact du drone, le capteur, le GSD cible, le relief et la forme de la parcelle pour l’adapter. Les limites constructeur, les autorisations et la météo du site priment toujours.');
+
+    return DrobotReply(
+      text: buffer.toString().trim(),
+      source: 'Planificateur avancé Drobot',
+      suggestions: <String>[
+        'Adapte ce plan à une parcelle longue et étroite',
+        'Ajoute une stratégie GCP et checkpoints',
+        'Fais la checklist terrain de cette mission',
+      ],
+    );
+  }
+
+  double? _extractHectares(String input) {
+    final match = RegExp(
+      r'(\d+(?:[.,]\d+)?)\s*(?:ha|hectare|hectares)\b',
+      caseSensitive: false,
+    ).firstMatch(input);
+    return _parseNumber(match?.group(1));
   }
 
   DrobotReply? _tryCalculator(String normalized, String original) {

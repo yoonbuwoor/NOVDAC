@@ -183,7 +183,7 @@ class _NovaSidebar extends StatelessWidget {
                       ),
                       SizedBox(height: 2),
                       Text(
-                        'NOVA 3.0',
+                        'ACADEMY',
                         style: TextStyle(color: cyan, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1.5),
                       ),
                     ],

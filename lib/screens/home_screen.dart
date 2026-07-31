@@ -7,6 +7,7 @@ import '../core/theme.dart';
 import '../data/academy_data.dart';
 import '../models/academy_models.dart';
 import '../widgets/common.dart';
+import '../widgets/flight_readiness_card.dart';
 import 'course_detail_screen.dart';
 import 'domain_detail_screen.dart';
 import 'glossary_screen.dart';
@@ -117,6 +118,26 @@ class HomeScreen extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 32, 20, 12),
                 child: const SectionHeading(
+                  eyebrow: 'FIELD KIT',
+                  title: 'Météo locale & décision de vol',
+                  subtitle: 'Analyse les conditions de ta position et déroule une vraie checklist avant décollage.',
+                ),
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: MaxWidthBox(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: FlightReadinessCard(),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: MaxWidthBox(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 32, 20, 12),
+                child: const SectionHeading(
                   eyebrow: 'TON COCKPIT',
                   title: 'Aujourd’hui dans DroneAtlas',
                   subtitle: 'Continue là où tu t’es arrêté et renforce les compétences les plus utiles.',
@@ -188,7 +209,7 @@ class HomeScreen extends StatelessWidget {
                         _QuickAction(
                           icon: Icons.science_rounded,
                           color: cyan,
-                          title: 'Nova Labs',
+                          title: 'Laboratoire',
                           subtitle: 'Calculs, checklist et simulations',
                           onTap: onOpenLab,
                         ),
@@ -232,7 +253,7 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 34, 20, 12),
                 child: SectionHeading(
                   eyebrow: 'ACADEMY PATH',
-                  title: '12 modules pour devenir autonome',
+                  title: '${modules.length} modules pour devenir autonome',
                   subtitle: 'Un parcours complet du pilotage à l’IA géospatiale et au métier.',
                   actionLabel: 'Explorer',
                   onAction: onOpenAcademy,
@@ -451,7 +472,7 @@ class _NovaHero extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 8,
                       children: const [
-                        Pill(label: 'DRONEATLAS NOVA 3.0', icon: Icons.auto_awesome_rounded),
+                        Pill(label: 'DRONEATLAS ACADEMY', icon: Icons.auto_awesome_rounded),
                         Pill(label: '100 % HORS LIGNE', icon: Icons.offline_bolt_rounded, color: success),
                       ],
                     ),
@@ -491,7 +512,7 @@ class _NovaHero extends StatelessWidget {
                             side: const BorderSide(color: Colors.white30),
                           ),
                           icon: const Icon(Icons.science_rounded),
-                          label: const Text('Ouvrir Nova Labs'),
+                          label: const Text('Ouvrir le laboratoire'),
                         ),
                       ],
                     ),
