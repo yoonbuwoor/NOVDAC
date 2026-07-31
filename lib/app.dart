@@ -47,6 +47,18 @@ class _DroneAtlasAppState extends State<DroneAtlasApp> {
         themeMode: _themeMode,
         theme: buildDroneTheme(Brightness.light),
         darkTheme: buildDroneTheme(Brightness.dark),
+        builder: (context, child) {
+          final mediaQuery = MediaQuery.of(context);
+          final systemScale = mediaQuery.textScaler.scale(1.0);
+          final safeScale = systemScale.clamp(0.90, 1.20).toDouble();
+
+          return MediaQuery(
+            data: mediaQuery.copyWith(
+              textScaler: TextScaler.linear(safeScale),
+            ),
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
         home: SplashScreen(
           child: _AppEntryGate(
             isDark: _themeMode == ThemeMode.dark,
