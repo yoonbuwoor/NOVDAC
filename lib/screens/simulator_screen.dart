@@ -351,13 +351,26 @@ class _PlanLab extends StatelessWidget {
 
   static int _planQuality(double front, double side, double altitude, double speed) {
     var score = 100;
-    if (front < 70) score -= 28;
-    if (side < 60) score -= 28;
-    if (altitude > anacimMaxAltitudeMeters) score -= 35;
-    else if (altitude >= 80) score -= 5;
-    if (altitude < 45) score -= 8;
-    if (speed > 10) score -= 15;
-    if (front > 88 || side > 82) score -= 5;
+    if (front < 70) {
+      score -= 28;
+    }
+    if (side < 60) {
+      score -= 28;
+    }
+    if (altitude > anacimMaxAltitudeMeters) {
+      score -= 35;
+    } else if (altitude >= 80) {
+      score -= 5;
+    }
+    if (altitude < 45) {
+      score -= 8;
+    }
+    if (speed > 10) {
+      score -= 15;
+    }
+    if (front > 88 || side > 82) {
+      score -= 5;
+    }
     return score.clamp(0, 100).toInt();
   }
 }
@@ -596,13 +609,37 @@ class _PlanAdvice extends StatelessWidget {
     final color = quality >= 80 ? success : quality >= 60 ? orange : danger;
     final title = quality >= 80 ? 'Plan robuste' : quality >= 60 ? 'Plan perfectible' : 'Plan risqué';
     final issues = <String>[];
-    if (controller.frontOverlap < 70) issues.add('Augmente le recouvrement longitudinal.');
-    if (controller.sideOverlap < 60) issues.add('Les bandes risquent de ne pas assez se rejoindre.');
-    if (controller.speed > 10) issues.add('La vitesse peut augmenter le flou et espacer les déclenchements.');
-    if (controller.altitude > anacimMaxAltitudeMeters) issues.insert(0, 'Altitude supérieure à 300 ft AGL : NO-GO sans permission applicable.');
-    else if (controller.altitude >= 80) issues.add('Altitude proche de la limite générale : surveille le relief et la hauteur AGL.');
-    if (controller.frontOverlap > 88 || controller.sideOverlap > 82) issues.add('Le nombre d’images augmente fortement sans toujours apporter un gain utile.');
-    if (issues.isEmpty) issues.add('Les paramètres forment un bon équilibre pour une zone plane et texturée.');
+    if (controller.frontOverlap < 70) {
+      issues.add('Augmente le recouvrement longitudinal.');
+    }
+    if (controller.sideOverlap < 60) {
+      issues.add('Les bandes risquent de ne pas assez se rejoindre.');
+    }
+    if (controller.speed > 10) {
+      issues.add(
+        'La vitesse peut augmenter le flou et espacer les déclenchements.',
+      );
+    }
+    if (controller.altitude > anacimMaxAltitudeMeters) {
+      issues.insert(
+        0,
+        'Altitude supérieure à 300 ft AGL : NO-GO sans permission applicable.',
+      );
+    } else if (controller.altitude >= 80) {
+      issues.add(
+        'Altitude proche de la limite générale : surveille le relief et la hauteur AGL.',
+      );
+    }
+    if (controller.frontOverlap > 88 || controller.sideOverlap > 82) {
+      issues.add(
+        'Le nombre d’images augmente fortement sans toujours apporter un gain utile.',
+      );
+    }
+    if (issues.isEmpty) {
+      issues.add(
+        'Les paramètres forment un bon équilibre pour une zone plane et texturée.',
+      );
+    }
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(17),
