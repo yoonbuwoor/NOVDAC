@@ -6,10 +6,10 @@ const navy = Color(0xFF040A12);
 const deepNavy = Color(0xFF071523);
 const panel = Color(0xFF0D1D2C);
 const surfaceDark = Color(0xFF102638);
-const cyan = Color(0xFFFF684B);
-const electricBlue = Color(0xFFFF405F);
-const orange = Color(0xFFFF9A52);
-const violet = Color(0xFFB20A52);
+const cyan = Color(0xFF21E6C1);
+const electricBlue = Color(0xFF4BA3FF);
+const orange = Color(0xFFFFB15C);
+const violet = Color(0xFFA78BFA);
 const lime = Color(0xFFC7F464);
 const success = Color(0xFF60E5A8);
 const danger = Color(0xFFFF7185);
@@ -182,6 +182,19 @@ ThemeData buildDroneTheme(Brightness brightness) {
         borderRadius: BorderRadius.circular(19),
         borderSide: const BorderSide(color: danger),
       ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(19),
+        borderSide: BorderSide(
+          color: dark ? Colors.white.withOpacity(.05) : const Color(0xFFE3EAEE),
+        ),
+      ),
+      labelStyle: TextStyle(color: scheme.onSurfaceVariant),
+      floatingLabelStyle: TextStyle(
+        color: dark ? cyan : const Color(0xFF006B61),
+        fontWeight: FontWeight.w800,
+      ),
+      prefixIconColor: dark ? scheme.onSurfaceVariant : const Color(0xFF35515E),
+      suffixIconColor: dark ? scheme.onSurfaceVariant : const Color(0xFF35515E),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
@@ -216,12 +229,91 @@ ThemeData buildDroneTheme(Brightness brightness) {
       ),
     ),
     chipTheme: ChipThemeData(
+      backgroundColor: dark ? const Color(0xFF122638) : const Color(0xFFEAF4F8),
+      disabledColor: dark ? const Color(0xFF172431) : const Color(0xFFF0F3F5),
+      selectedColor: dark ? cyan.withOpacity(.24) : const Color(0xFFBFEFE6),
+      secondarySelectedColor:
+          dark ? electricBlue.withOpacity(.22) : const Color(0xFFDCEBFF),
+      checkmarkColor: dark ? cyan : const Color(0xFF00695F),
+      deleteIconColor: dark ? scheme.onSurfaceVariant : const Color(0xFF294552),
+      iconTheme: IconThemeData(
+        color: dark ? scheme.onSurfaceVariant : const Color(0xFF294552),
+        size: 18,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-      side: BorderSide(color: dark ? Colors.white12 : Colors.black12),
-      labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+      side: BorderSide(
+        color: dark ? Colors.white.withOpacity(.13) : const Color(0xFFBFD0D8),
+      ),
+      labelStyle: TextStyle(
+        color: dark ? scheme.onSurface : const Color(0xFF102A43),
+        fontWeight: FontWeight.w800,
+        fontSize: 12,
+      ),
+      secondaryLabelStyle: TextStyle(
+        color: dark ? Colors.white : const Color(0xFF082032),
+        fontWeight: FontWeight.w900,
+        fontSize: 12,
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
     ),
-    sliderTheme: SliderThemeData(
+    listTileTheme: ListTileThemeData(
+      textColor: scheme.onSurface,
+      iconColor: scheme.onSurfaceVariant,
+      titleTextStyle: TextStyle(
+        color: scheme.onSurface,
+        fontWeight: FontWeight.w800,
+        fontSize: 15,
+      ),
+      subtitleTextStyle: TextStyle(
+        color: scheme.onSurfaceVariant,
+        height: 1.35,
+        fontSize: 13,
+      ),
+    ),
+    popupMenuTheme: PopupMenuThemeData(
+      color: dark ? panel : Colors.white,
+      surfaceTintColor: Colors.transparent,
+      textStyle: TextStyle(
+        color: scheme.onSurface,
+        fontWeight: FontWeight.w700,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+    ),
+    checkboxTheme: CheckboxThemeData(
+      fillColor: WidgetStateProperty.resolveWith<Color?>((states) {
+        if (states.contains(WidgetState.selected)) return cyan;
+        return dark ? const Color(0xFF172A3A) : Colors.white;
+      }),
+      checkColor: const WidgetStatePropertyAll<Color>(navy),
+      side: BorderSide(
+        color: dark ? Colors.white38 : const Color(0xFF607D8B),
+        width: 1.4,
+      ),
+    ),
+    radioTheme: RadioThemeData(
+      fillColor: WidgetStateProperty.resolveWith<Color?>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return dark ? cyan : const Color(0xFF007C70);
+        }
+        return dark ? scheme.onSurfaceVariant : const Color(0xFF526D79);
+      }),
+    ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
+        if (states.contains(WidgetState.selected)) return navy;
+        return dark ? const Color(0xFFDDEAF0) : const Color(0xFF526D79);
+      }),
+      trackColor: WidgetStateProperty.resolveWith<Color?>((states) {
+        if (states.contains(WidgetState.selected)) return cyan;
+        return dark ? Colors.white24 : const Color(0xFFCEDAE0);
+      }),
+    ),
+    textSelectionTheme: TextSelectionThemeData(
+      cursorColor: dark ? cyan : const Color(0xFF007C70),
+      selectionColor: cyan.withOpacity(.26),
+      selectionHandleColor: dark ? cyan : const Color(0xFF007C70),
+    ),
+        sliderTheme: SliderThemeData(
       activeTrackColor: cyan,
       thumbColor: cyan,
       inactiveTrackColor: cyan.withOpacity(.16),
