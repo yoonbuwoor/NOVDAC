@@ -915,6 +915,8 @@ class _FragmentLabState extends State<_FragmentLab> {
   Widget build(BuildContext context) {
     final item = _items[_current];
     final correct = _answer == item.issue;
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       key: const ValueKey('fragment-content'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -971,11 +973,31 @@ class _FragmentLabState extends State<_FragmentLab> {
                     runSpacing: 9,
                     children: ['Bonne', 'Floue', 'Surexposée', 'Oblique']
                         .map(
-                          (label) => ChoiceChip(
-                            selected: _answer == label,
-                            label: Text(label),
-                            onSelected: _checked ? null : (_) => setState(() => _answer = label),
-                          ),
+                          (label) {
+                            final selected = _answer == label;
+                            return ChoiceChip(
+                              selected: selected,
+                              showCheckmark: true,
+                              selectedColor: isDark ? cyan.withOpacity(.28) : cyan.withOpacity(.22),
+                              backgroundColor: isDark ? const Color(0xFF122235) : const Color(0xFFEAF4FF),
+                              disabledColor: isDark ? const Color(0xFF182737) : const Color(0xFFF3F6FA),
+                              side: BorderSide(
+                                color: selected
+                                    ? cyan.withOpacity(.75)
+                                    : scheme.outline.withOpacity(isDark ? .30 : .22),
+                              ),
+                              label: Text(
+                                label,
+                                style: TextStyle(
+                                  color: selected
+                                      ? (isDark ? Colors.white : const Color(0xFF06263D))
+                                      : (isDark ? scheme.onSurface : const Color(0xFF102A43)),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              onSelected: _checked ? null : (_) => setState(() => _answer = label),
+                            );
+                          },
                         )
                         .toList(),
                   ),
