@@ -8,7 +8,9 @@ import '../models/remote_content_models.dart';
 import '../widgets/common.dart';
 import 'course_detail_screen.dart';
 import 'glossary_screen.dart';
-import 'quiz_screen.dart';
+import 'quiz_hub_screen.dart';
+import 'regulation_screen.dart';
+import 'resources_screen.dart';
 import 'remote_course_detail_screen.dart';
 import 'update_center_screen.dart';
 
@@ -54,8 +56,11 @@ class _LearnScreenState extends State<LearnScreen> {
           course.category.toLowerCase().contains(q);
     }).toList();
 
-    return CustomScrollView(
-      slivers: [
+    final mediaQuery = MediaQuery.of(context);
+    return MediaQuery(
+      data: mediaQuery.copyWith(textScaler: TextScaler.noScaling),
+      child: CustomScrollView(
+        slivers: [
         SliverToBoxAdapter(
           child: MaxWidthBox(
             child: BrandBar(
@@ -71,6 +76,18 @@ class _LearnScreenState extends State<LearnScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 6, 20, 18),
               child: _AcademyHeader(controller: controller),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: MaxWidthBox(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: _AcademyQuickAccess(
+                onQuiz: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizHubScreen())),
+                onResources: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ResourcesScreen())),
+                onRegulation: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegulationScreen())),
+              ),
             ),
           ),
         ),
@@ -109,7 +126,7 @@ class _LearnScreenState extends State<LearnScreen> {
                   const SizedBox(width: 8),
                   IconButton.filledTonal(
                     tooltip: 'Quiz global',
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizScreen())),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizHubScreen())),
                     icon: const Icon(Icons.quiz_rounded),
                     style: IconButton.styleFrom(minimumSize: const Size(54, 54)),
                   ),
@@ -191,7 +208,7 @@ class _LearnScreenState extends State<LearnScreen> {
                       crossAxisCount: columns,
                       mainAxisSpacing: 14,
                       crossAxisSpacing: 14,
-                      childAspectRatio: columns == 1 ? 1.38 : 1.13,
+                      childAspectRatio: columns == 1 ? .98 : 1.02,
                     ),
                     itemBuilder: (context, index) => _ModuleCard(
                       module: filtered[index],
@@ -203,7 +220,134 @@ class _LearnScreenState extends State<LearnScreen> {
             ),
           ),
         ),
-      ],
+        ],
+      ),
+    );
+  }
+}
+
+
+class _AcademyQuickAccess extends StatelessWidget {
+  const _AcademyQuickAccess({
+    required this.onQuiz,
+    required this.onResources,
+    required this.onRegulation,
+  });
+
+  final VoidCallback onQuiz;
+  final VoidCallback onResources;
+  final VoidCallback onRegulation;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 580;
+        final cards = [
+          _AcademyAccessCard(
+            title: 'Quiz & défis',
+            subtitle: 'Classes ANACIM, sécurité, photo, SIG et DJI',
+            icon: Icons.quiz_rounded,
+            color: orange,
+            onTap: onQuiz,
+          ),
+          _AcademyAccessCard(
+            title: 'Ressources',
+            subtitle: '30 fiches terrain, traitement et métier',
+            icon: Icons.library_books_rounded,
+            color: cyan,
+            onTap: onResources,
+          ),
+          _AcademyAccessCard(
+            title: 'ANACIM',
+            subtitle: 'Classification, autorisations, PER et limites',
+            icon: Icons.gavel_rounded,
+            color: violet,
+            onTap: onRegulation,
+          ),
+        ];
+        if (compact) {
+          return Column(
+            children: [
+              for (var i = 0; i < cards.length; i++) ...[
+                cards[i],
+                if (i < cards.length - 1) const SizedBox(height: 9),
+              ],
+            ],
+          );
+        }
+        return Row(
+          children: [
+            for (var i = 0; i < cards.length; i++) ...[
+              Expanded(child: cards[i]),
+              if (i < cards.length - 1) const SizedBox(width: 10),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AcademyAccessCard extends StatelessWidget {
+  const _AcademyAccessCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(.14),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, color: color),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 11,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded, size: 15),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -236,7 +380,7 @@ class _AcademyHeader extends StatelessWidget {
             children: [
               const Pill(label: 'PARCOURS DRONEATLAS', icon: Icons.route_rounded, color: violet),
               const SizedBox(height: 14),
-              const Text('De novice à opérateur augmenté', style: TextStyle(fontSize: 27, fontWeight: FontWeight.w900, letterSpacing: -.8)),
+              Text('De novice à opérateur augmenté', style: TextStyle(fontSize: MediaQuery.sizeOf(context).width < 430 ? 21 : 25, fontWeight: FontWeight.w900, letterSpacing: -.6)),
               const SizedBox(height: 7),
               Text(
                 '${totalLessonCount + controller.remoteCourses.length} leçons courtes : pilotage, photo, planification, terrain, traitement, SIG, sécurité, capteurs avancés, IA géospatiale et activité professionnelle.',
@@ -306,9 +450,9 @@ class _ModuleCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Text(module.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+              Text(module.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
               const SizedBox(height: 6),
-              Text(module.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.35, fontSize: 13)),
+              Text(module.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.32, fontSize: 12)),
               const Spacer(),
               ...module.lessons.take(2).map(
                     (lesson) => Padding(

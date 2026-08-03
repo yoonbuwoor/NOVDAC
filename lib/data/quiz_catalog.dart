@@ -11,6 +11,10 @@ class QuizPack {
     required this.icon,
     required this.accent,
     required this.questions,
+    this.difficulty = 'Intermédiaire',
+    this.minutes = 8,
+    this.xp = 120,
+    this.featured = false,
   });
 
   final String id;
@@ -19,6 +23,10 @@ class QuizPack {
   final IconData icon;
   final int accent;
   final List<QuizQuestion> questions;
+  final String difficulty;
+  final int minutes;
+  final int xp;
+  final bool featured;
 
   Color get accentColor => Color(accent);
 }
@@ -78,11 +86,29 @@ const djiSystemsQuizQuestions = <QuizQuestion>[
   QuizQuestion(category: 'Choix', question: 'Le choix d’un drone doit commencer par…', answers: ['Le besoin, la précision, la surface et le livrable', 'La couleur', 'La publicité', 'Le nombre maximal de modes automatiques'], correct: 0, explanation: 'La plateforme découle des exigences de mission, pas l’inverse.'),
 ];
 
+const anacimAuthorizationQuizQuestions = <QuizQuestion>[
+  QuizQuestion(category: 'Classe', question: 'Un RPAS de 4,8 kg appartient à quelle classe ?', answers: ['Classe 1', 'Classe 2', 'Classe 3', 'Aucune classe'], correct: 0, explanation: 'La classe 1 couvre les RPAS de masse égale ou inférieure à 5 kg, charge comprise.'),
+  QuizQuestion(category: 'Classe', question: 'Un RPAS de 12 kg appartient à quelle classe ?', answers: ['Classe 2', 'Classe 1', 'Classe 3', 'Catégorie A'], correct: 0, explanation: 'La classe 2 couvre une masse supérieure à 5 kg et inférieure ou égale à 25 kg.'),
+  QuizQuestion(category: 'Classe', question: 'Un RPAS de 28 kg utilisé professionnellement relève en principe de…', answers: ['3C et d’un PER', '3A sans autorisation', '2A', '1C'], correct: 0, explanation: 'Au-delà de 25 kg, la classe 3 s’applique ; en usage professionnel, le régime est 3C avec PER.'),
+  QuizQuestion(category: 'Catégorie', question: 'Une mission de photogrammétrie facturée avec un drone de 900 g relève de…', answers: ['La catégorie C, donc 1C', 'La catégorie A', 'La catégorie B', 'Aucune catégorie'], correct: 0, explanation: 'La catégorie dépend de l’usage. Une mission professionnelle reste C même avec un drone léger.'),
+  QuizQuestion(category: 'Tableau', question: 'Quel couple est indiqué comme non autorisé ?', answers: ['2A', '2B', '2C', '1A'], correct: 0, explanation: 'Le tableau de l’Annexe 5 indique 2A comme non autorisé.'),
+  QuizQuestion(category: 'Tableau', question: 'Quel autre couple est non autorisé ?', answers: ['3B', '1B', '2B', '1C'], correct: 0, explanation: 'Les catégories 3A et 3B sont indiquées comme non autorisées.'),
+  QuizQuestion(category: 'Autorisation', question: 'Avant une activité professionnelle, l’exploitant doit…', answers: ['Demander une autorisation à l’ANACIM avant le début des opérations', 'Seulement charger les batteries', 'Publier une photo', 'Acheter un filtre ND'], correct: 0, explanation: 'L’autorisation doit être obtenue avant l’opération professionnelle ou commerciale.'),
+  QuizQuestion(category: 'Dossier', question: 'Le dossier professionnel doit notamment expliquer…', answers: ['Le projet et les zones d’opération', 'La couleur du drone', 'Le nom du téléphone', 'La musique du pilote'], correct: 0, explanation: 'L’Annexe demande une explication détaillée du projet et une cartographie des zones avec coordonnées.'),
+  QuizQuestion(category: 'Caméra', question: 'Lorsque le RPAS professionnel est équipé d’une caméra, le dossier prévoit notamment…', answers: ['Une autorisation du ministère de l’Intérieur', 'Un permis de conduire', 'Un abonnement vidéo', 'Une carte de fidélité'], correct: 0, explanation: 'Le dossier professionnel listé dans l’Annexe comprend cette autorisation.'),
+  QuizQuestion(category: 'PER', question: 'La demande de PER doit être déposée combien de temps avant le début prévu des opérations ?', answers: ['Au moins trois mois', 'Une heure', 'Après la mission', 'Un jour'], correct: 0, explanation: 'L’Annexe prévoit un dépôt au moins trois mois avant le démarrage prévu.'),
+  QuizQuestion(category: 'Identification', question: 'Quel préfixe est prévu pour les marques d’identification ?', answers: ['SN.UAS', 'DJI.SN', 'RAS.PHOTO', 'GPS.CFA'], correct: 0, explanation: 'Les marques d’identification portent les lettres SN.UAS suivies d’une combinaison de lettres et chiffres.'),
+  QuizQuestion(category: 'Licence', question: 'Depuis janvier 2022, le télépilote opérant depuis le Sénégal doit en principe…', answers: ['Détenir une licence délivrée ou validée par l’Autorité', 'Avoir seulement un smartphone', 'Voler sans formation', 'Utiliser uniquement un drone rouge'], correct: 0, explanation: 'L’Annexe prévoit une licence de télépilote délivrée ou validée par l’ANACIM, sous réserve des exceptions prévues.'),
+  QuizQuestion(category: 'Assurance', question: 'Une opération professionnelle doit être couverte par…', answers: ['Une assurance adaptée, notamment responsabilité civile', 'Aucune assurance', 'Une garantie téléphone', 'Un abonnement météo'], correct: 0, explanation: 'Le règlement exige une police d’assurance applicable et la disponibilité de l’attestation.'),
+  QuizQuestion(category: 'NOTAM', question: 'Le dossier professionnel prévoit, lorsque nécessaire…', answers: ['Une demande de NOTAM avant l’activité', 'Une publication sur les réseaux sociaux', 'Un changement de logo', 'Un vol de nuit automatique'], correct: 0, explanation: 'La coordination aéronautique et la demande de NOTAM font partie des préparatifs listés.'),
+];
+
 const quizPacks = <QuizPack>[
-  QuizPack(id: 'general', title: 'Quiz général', subtitle: 'Un tour complet de DroneAtlas.', icon: Icons.emoji_events_rounded, accent: 0xFFFF684B, questions: quizQuestions),
-  QuizPack(id: 'pilotage', title: 'Pilotage & sécurité', subtitle: 'Prévol, météo, urgence et décisions.', icon: Icons.shield_rounded, accent: 0xFFFF405F, questions: dronePilotQuizQuestions),
-  QuizPack(id: 'photogrammetry', title: 'Photogrammétrie', subtitle: 'GSD, recouvrement, GCP et contrôle.', icon: Icons.view_in_ar_rounded, accent: 0xFFB20A52, questions: photogrammetryQuizQuestions),
-  QuizPack(id: 'anacim', title: 'Réglementation ANACIM', subtitle: 'Annexe 5 au RAS 06 — règles clés.', icon: Icons.gavel_rounded, accent: 0xFFFFB15C, questions: anacimQuizQuestions),
-  QuizPack(id: 'gis', title: 'SIG & données', subtitle: 'CRS, rasters, nuages de points et qualité.', icon: Icons.map_rounded, accent: 0xFF60E5A8, questions: gisQuizQuestions),
-  QuizPack(id: 'dji', title: 'Systèmes DJI', subtitle: 'Choisir la bonne plateforme selon le besoin.', icon: Icons.flight_rounded, accent: 0xFFFF8A4C, questions: djiSystemsQuizQuestions),
+  QuizPack(id: 'anacim-auth', title: 'Classes & autorisations ANACIM', subtitle: '1A à 3C, dossiers, PER, licence et identification.', icon: Icons.verified_user_rounded, accent: 0xFFFF684B, questions: anacimAuthorizationQuizQuestions, difficulty: 'Essentiel', minutes: 12, xp: 220, featured: true),
+  QuizPack(id: 'general', title: 'Quiz général', subtitle: 'Un tour complet de DroneAtlas Academy.', icon: Icons.emoji_events_rounded, accent: 0xFFFF684B, questions: quizQuestions, difficulty: 'Mixte', minutes: 10, xp: 180, featured: true),
+  QuizPack(id: 'pilotage', title: 'Pilotage & sécurité', subtitle: 'Prévol, météo, urgence et décisions.', icon: Icons.shield_rounded, accent: 0xFFFF405F, questions: dronePilotQuizQuestions, difficulty: 'Fondamental', minutes: 7, xp: 130),
+  QuizPack(id: 'photogrammetry', title: 'Photogrammétrie', subtitle: 'GSD, recouvrement, GCP et contrôle.', icon: Icons.view_in_ar_rounded, accent: 0xFFB20A52, questions: photogrammetryQuizQuestions, difficulty: 'Intermédiaire', minutes: 8, xp: 150),
+  QuizPack(id: 'anacim', title: 'Règles de vol ANACIM', subtitle: 'Altitude, VLOS, aérodromes, nuit et zones.', icon: Icons.gavel_rounded, accent: 0xFFFFB15C, questions: anacimQuizQuestions, difficulty: 'Essentiel', minutes: 8, xp: 160),
+  QuizPack(id: 'gis', title: 'SIG & données', subtitle: 'CRS, rasters, nuages de points et qualité.', icon: Icons.map_rounded, accent: 0xFF60E5A8, questions: gisQuizQuestions, difficulty: 'Intermédiaire', minutes: 8, xp: 150),
+  QuizPack(id: 'dji', title: 'Systèmes DJI', subtitle: 'Choisir la bonne plateforme selon le besoin.', icon: Icons.flight_rounded, accent: 0xFFFF8A4C, questions: djiSystemsQuizQuestions, difficulty: 'Pratique', minutes: 7, xp: 140),
 ];

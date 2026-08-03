@@ -185,9 +185,9 @@ class _QuestionView extends StatelessWidget {
                       const SizedBox(height: 20),
                       Text(
                         question.question,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          height: 1.22,
+                        style: TextStyle(
+                          fontSize: MediaQuery.sizeOf(context).width < 430 ? 20 : 24,
+                          height: 1.24,
                           fontWeight: FontWeight.w900,
                         ),
                       ),

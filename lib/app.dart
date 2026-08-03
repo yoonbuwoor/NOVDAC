@@ -50,7 +50,7 @@ class _DroneAtlasAppState extends State<DroneAtlasApp> {
         builder: (context, child) {
           final mediaQuery = MediaQuery.of(context);
           final systemScale = mediaQuery.textScaler.scale(1.0);
-          final safeScale = systemScale.clamp(0.90, 1.20).toDouble();
+          final safeScale = systemScale.clamp(0.95, 1.05).toDouble();
 
           return MediaQuery(
             data: mediaQuery.copyWith(

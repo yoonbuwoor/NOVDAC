@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-
-import 'drone_history_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/theme.dart';
 import '../data/drone_catalog_data.dart';
 import '../models/drone_catalog_models.dart';
 import '../widgets/common.dart';
+import 'drone_history_screen.dart';
+import 'regulation_screen.dart';
+
+const _droneAtlasGroupUrl =
+    'https://chat.whatsapp.com/Gs67DpOSATw27HPzl8uq3u?s=sh&p=a&ilr=1';
 
 class DroneCatalogScreen extends StatefulWidget {
   const DroneCatalogScreen({
@@ -23,17 +27,52 @@ class DroneCatalogScreen extends StatefulWidget {
 
 class _DroneCatalogScreenState extends State<DroneCatalogScreen> {
   DroneNeed _need = DroneNeed.smallMapping;
+  DroneBudget _budget = DroneBudget.any;
   bool _mappingOnly = false;
+  final TextEditingController _search = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   List<DroneCatalogItem> get _visible {
-    final source = _mappingOnly
-        ? djiDroneCatalog.where((drone) => drone.professionalMapping)
-        : djiDroneCatalog;
-    final result = source.toList()
-      ..sort(
-        (a, b) => (b.needScores[_need] ?? 0).compareTo(a.needScores[_need] ?? 0),
-      );
+    final q = _query.trim().toLowerCase();
+    final result = djiDroneCatalog.where((drone) {
+      if (_mappingOnly && !drone.professionalMapping) return false;
+      if (!_budget.accepts(drone)) return false;
+      if (q.isNotEmpty) {
+        final haystack = [
+          drone.name,
+          drone.family,
+          drone.profile,
+          drone.sensor,
+          drone.bestFor,
+          ...drone.tags,
+        ].join(' ').toLowerCase();
+        if (!haystack.contains(q)) return false;
+      }
+      return true;
+    }).toList()
+      ..sort((a, b) {
+        final score = (b.needScores[_need] ?? 0)
+            .compareTo(a.needScores[_need] ?? 0);
+        if (score != 0) return score;
+        return (a.officialPriceCfa ?? 999999999)
+            .compareTo(b.officialPriceCfa ?? 999999999);
+      });
     return result;
+  }
+
+  Future<void> _open(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossible d’ouvrir ce lien.')),
+      );
+    }
   }
 
   @override
@@ -49,173 +88,324 @@ class _DroneCatalogScreenState extends State<DroneCatalogScreen> {
               child: BrandBar(
                 isDark: widget.isDark,
                 onToggleTheme: widget.onToggleTheme,
-                title: 'Drones DJI',
-                subtitle: '${djiDroneCatalog.length} configurations expliquées et comparées',
+                title: 'Choisir un drone',
+                subtitle:
+                    '${djiDroneCatalog.length} plateformes • budget • domaine • repère ANACIM',
               ),
             ),
           ),
           SliverToBoxAdapter(
             child: MaxWidthBox(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 5, 20, 14),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF3A1029), Color(0xFF11141D)],
-                    ),
-                    border: Border.all(color: orange.withOpacity(.26)),
+                padding: const EdgeInsets.fromLTRB(16, 2, 16, 14),
+                child: _SelectorHero(
+                  need: _need,
+                  budget: _budget,
+                  mappingOnly: _mappingOnly,
+                  onNeedChanged: (value) => setState(() => _need = value),
+                  onBudgetChanged: (value) => setState(() => _budget = value),
+                  onMappingChanged: (value) =>
+                      setState(() => _mappingOnly = value),
+                  onContact: () => _open(_droneAtlasGroupUrl),
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: MaxWidthBox(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(
+                  controller: _search,
+                  onChanged: (value) => setState(() => _query = value),
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher : RTK, LiDAR, thermique, compact…',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: _query.isEmpty
+                        ? null
+                        : IconButton(
+                            onPressed: () {
+                              _search.clear();
+                              setState(() => _query = '');
+                            },
+                            icon: const Icon(Icons.close_rounded),
+                          ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          GradientIcon(
-                            icon: Icons.flight_rounded,
-                            size: 54,
-                            color: orange,
-                          ),
-                          SizedBox(width: 13),
-                          Expanded(
-                            child: Text(
-                              'Quel drone pour ton besoin ?',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Choisis un objectif : DroneAtlas classe les plateformes selon leur adéquation pédagogique. Vérifie ensuite prix, disponibilité, réglementation et documentation du fabricant.',
-                        style: TextStyle(color: Colors.white70, height: 1.42),
-                      ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<DroneNeed>(
-                        value: _need,
-                        decoration: const InputDecoration(
-                          labelText: 'Besoin principal',
-                          prefixIcon: Icon(Icons.tune_rounded),
-                        ),
-                        items: DroneNeed.values
-                            .map(
-                              (need) => DropdownMenuItem(
-                                value: need,
-                                child: Text(need.label),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          if (value != null) setState(() => _need = value);
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                      OutlinedButton.icon(
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: MaxWidthBox(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
                         onPressed: () => Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const DroneHistoryScreen()),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white30),
+                          MaterialPageRoute(
+                            builder: (_) => const DroneHistoryScreen(),
+                          ),
                         ),
                         icon: const Icon(Icons.history_edu_rounded),
-                        label: const Text('Découvrir l’histoire des drones'),
+                        label: const Text('Histoire des drones'),
                       ),
-                      const SizedBox(height: 8),
-                      SwitchListTile.adaptive(
-                        contentPadding: EdgeInsets.zero,
-                        value: _mappingOnly,
-                        onChanged: (value) => setState(() => _mappingOnly = value),
-                        title: const Text(
-                          'Photogrammétrie professionnelle uniquement',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
-                        ),
-                        subtitle: const Text(
-                          'Masque les plateformes destinées surtout à l’apprentissage ou à l’inspection.',
-                          style: TextStyle(color: Colors.white60, fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: MaxWidthBox(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
-                child: SectionHeading(
-                  eyebrow: 'RECOMMANDÉ POUR TOI',
-                  title: _need.label,
-                  subtitle: 'Classement calculé à partir du type de capteur, de la précision, de la productivité et de la logistique.',
-                ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: MaxWidthBox(
-              child: SizedBox(
-                height: 245,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: top.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) => _RecommendationCard(
-                    drone: top[index],
-                    score: top[index].needScores[_need] ?? 0,
-                    rank: index + 1,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: MaxWidthBox(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
-                child: const SectionHeading(
-                  title: 'Catalogue étendu',
-                  subtitle: 'Plateformes actuelles et systèmes encore courants sur le terrain.',
-                ),
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 110),
-            sliver: SliverLayoutBuilder(
-              builder: (context, constraints) {
-                final columns = constraints.crossAxisExtent >= 930
-                    ? 3
-                    : constraints.crossAxisExtent >= 620
-                        ? 2
-                        : 1;
-                return SliverGrid(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: columns == 1 ? 1.55 : 1.05,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _DroneCard(
-                      drone: drones[index],
-                      score: drones[index].needScores[_need] ?? 0,
                     ),
-                    childCount: drones.length,
-                  ),
-                );
-              },
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RegulationScreen(),
+                          ),
+                        ),
+                        icon: const Icon(Icons.gavel_rounded),
+                        label: const Text('Régime ANACIM'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
+          ),
+          SliverToBoxAdapter(
+            child: MaxWidthBox(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+                child: SectionHeading(
+                  eyebrow: 'SÉLECTION PERSONNALISÉE',
+                  title: top.isEmpty ? 'Aucun résultat' : _need.label,
+                  subtitle: top.isEmpty
+                      ? 'Élargis le budget ou retire un filtre.'
+                      : 'Classement par adéquation au besoin, puis par prix public disponible.',
+                ),
+              ),
+            ),
+          ),
+          if (top.isNotEmpty)
+            SliverToBoxAdapter(
+              child: MaxWidthBox(
+                child: SizedBox(
+                  height: 346,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: top.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) => _RecommendationCard(
+                      drone: top[index],
+                      score: top[index].needScores[_need] ?? 0,
+                      rank: index + 1,
+                      need: _need,
+                      onOpen: () => _showDrone(top[index]),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          SliverToBoxAdapter(
+            child: MaxWidthBox(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 28, 16, 10),
+                child: SectionHeading(
+                  title: '${drones.length} drone(s) compatible(s)',
+                  subtitle:
+                      'Photos produit, prix indicatifs en F CFA, usages et repère de classification.',
+                ),
+              ),
+            ),
+          ),
+          if (drones.isEmpty)
+            SliverToBoxAdapter(
+              child: MaxWidthBox(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                  child: _EmptyState(
+                    onReset: () => setState(() {
+                      _budget = DroneBudget.any;
+                      _mappingOnly = false;
+                      _query = '';
+                      _search.clear();
+                    }),
+                  ),
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+              sliver: SliverLayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = constraints.crossAxisExtent >= 950
+                      ? 3
+                      : constraints.crossAxisExtent >= 620
+                          ? 2
+                          : 1;
+                  return SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: columns == 1 ? .90 : .78,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => _DroneCard(
+                        drone: drones[index],
+                        need: _need,
+                        score: drones[index].needScores[_need] ?? 0,
+                        onOpen: () => _showDrone(drones[index]),
+                      ),
+                      childCount: drones.length,
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showDrone(DroneCatalogItem drone) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => _DroneDetails(
+        drone: drone,
+        need: _need,
+        onOpenOfficial: drone.officialProductUrl == null
+            ? null
+            : () => _open(drone.officialProductUrl!),
+        onContact: () => _open(_droneAtlasGroupUrl),
+      ),
+    );
+  }
+}
+
+class _SelectorHero extends StatelessWidget {
+  const _SelectorHero({
+    required this.need,
+    required this.budget,
+    required this.mappingOnly,
+    required this.onNeedChanged,
+    required this.onBudgetChanged,
+    required this.onMappingChanged,
+    required this.onContact,
+  });
+
+  final DroneNeed need;
+  final DroneBudget budget;
+  final bool mappingOnly;
+  final ValueChanged<DroneNeed> onNeedChanged;
+  final ValueChanged<DroneBudget> onBudgetChanged;
+  final ValueChanged<bool> onMappingChanged;
+  final VoidCallback onContact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF5B102D), Color(0xFF26102D), Color(0xFF091B25)],
+        ),
+        border: Border.all(color: orange.withOpacity(.32)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GradientIcon(icon: Icons.tune_rounded, size: 52, color: orange),
+              SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Trouve le bon drone',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 23,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Choisis ton domaine et ton budget. DroneAtlas compare les capteurs, la précision, la productivité et la logistique.',
+                      style: TextStyle(color: Colors.white70, height: 1.42),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          DropdownButtonFormField<DroneNeed>(
+            value: need,
+            decoration: const InputDecoration(
+              labelText: 'Domaine d’utilisation',
+              prefixIcon: Icon(Icons.workspaces_rounded),
+            ),
+            items: DroneNeed.values
+                .map((value) => DropdownMenuItem(
+                      value: value,
+                      child: Text(value.label),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              if (value != null) onNeedChanged(value);
+            },
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<DroneBudget>(
+            value: budget,
+            decoration: const InputDecoration(
+              labelText: 'Budget maximum',
+              prefixIcon: Icon(Icons.account_balance_wallet_rounded),
+            ),
+            items: DroneBudget.values
+                .map((value) => DropdownMenuItem(
+                      value: value,
+                      child: Text(value.label),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              if (value != null) onBudgetChanged(value);
+            },
+          ),
+          const SizedBox(height: 6),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            value: mappingOnly,
+            onChanged: onMappingChanged,
+            title: const Text(
+              'Photogrammétrie professionnelle uniquement',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+            ),
+            subtitle: const Text(
+              'Privilégie les plateformes RTK, obturateur mécanique, multispectral ou LiDAR.',
+              style: TextStyle(color: Colors.white60, fontSize: 12),
+            ),
+          ),
+          const SizedBox(height: 8),
+          FilledButton.icon(
+            onPressed: onContact,
+            icon: const Icon(Icons.shopping_bag_rounded),
+            label: const Text('Contacter Novateur221 pour acheter'),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Prix indicatifs convertis depuis les tarifs neufs du DJI Store officiel au taux fixe euro/F CFA. Hors livraison, douane, taxes locales, batteries supplémentaires et accessoires. Certains systèmes professionnels sont uniquement sur devis.',
+            style: TextStyle(color: Colors.white60, fontSize: 11, height: 1.4),
           ),
         ],
       ),
@@ -228,67 +418,83 @@ class _RecommendationCard extends StatelessWidget {
     required this.drone,
     required this.score,
     required this.rank,
+    required this.need,
+    required this.onOpen,
   });
 
   final DroneCatalogItem drone;
   final int score;
   final int rank;
+  final DroneNeed need;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
     final accent = drone.accentColor;
     return SizedBox(
-      width: 290,
+      width: 292,
       child: Card(
         clipBehavior: Clip.antiAlias,
-        child: Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [accent.withOpacity(.17), Colors.transparent],
-            ),
-          ),
+        child: InkWell(
+          onTap: onOpen,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: accent.withOpacity(.16),
-                    child: Text(
-                      '$rank',
-                      style: TextStyle(color: accent, fontWeight: FontWeight.w900),
-                    ),
-                  ),
-                  const Spacer(),
-                  Pill(label: '$score %', icon: Icons.auto_awesome_rounded, color: accent),
-                ],
-              ),
-              const SizedBox(height: 15),
-              Text(
-                drone.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                drone.family,
-                style: TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 11),
+              _DroneImage(drone: drone, height: 130),
               Expanded(
-                child: Text(
-                  drone.bestFor,
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    height: 1.4,
-                    fontSize: 12,
+                child: Padding(
+                  padding: const EdgeInsets.all(15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Pill(label: '#$rank', color: accent),
+                          const Spacer(),
+                          Pill(
+                            label: '$score % compatible',
+                            icon: Icons.auto_awesome_rounded,
+                            color: accent,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        drone.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        drone.priceLabel,
+                        style: TextStyle(
+                          color: accent,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 9),
+                      Text(
+                        '${drone.anacimCodeFor(need)} • ${drone.anacimClass}',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 7),
+                      Expanded(
+                        child: Text(
+                          drone.bestFor,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontSize: 12,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -301,10 +507,17 @@ class _RecommendationCard extends StatelessWidget {
 }
 
 class _DroneCard extends StatelessWidget {
-  const _DroneCard({required this.drone, required this.score});
+  const _DroneCard({
+    required this.drone,
+    required this.need,
+    required this.score,
+    required this.onOpen,
+  });
 
   final DroneCatalogItem drone;
+  final DroneNeed need;
   final int score;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -312,156 +525,291 @@ class _DroneCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => showModalBottomSheet<void>(
-          context: context,
-          isScrollControlled: true,
-          useSafeArea: true,
-          builder: (_) => _DroneDetails(drone: drone),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(17),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 45,
-                    height: 45,
-                    decoration: BoxDecoration(
-                      color: accent.withOpacity(.13),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Icon(Icons.flight_rounded, color: accent),
-                  ),
-                  const SizedBox(width: 11),
-                  Expanded(
-                    child: Column(
+        onTap: onOpen,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _DroneImage(drone: drone, height: 155),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          drone.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                drone.name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                drone.family,
+                                style: TextStyle(
+                                  color: accent,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        Text(
-                          drone.family,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: accent, fontSize: 10.5, fontWeight: FontWeight.w800),
-                        ),
+                        Pill(label: '$score %', color: accent),
                       ],
                     ),
-                  ),
-                  Text('$score%', style: TextStyle(color: accent, fontWeight: FontWeight.w900)),
-                ],
-              ),
-              const SizedBox(height: 13),
-              Text(
-                drone.profile,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  height: 1.38,
-                  fontSize: 12,
+                    const SizedBox(height: 11),
+                    Text(
+                      drone.priceLabel,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 9),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        Pill(
+                          label: drone.anacimCodeFor(need),
+                          icon: Icons.gavel_rounded,
+                          color: orange,
+                        ),
+                        Pill(label: drone.anacimClass, color: cyan),
+                        ...drone.tags.take(2).map((tag) => Pill(label: tag, color: accent)),
+                      ],
+                    ),
+                    const SizedBox(height: 11),
+                    Expanded(
+                      child: Text(
+                        drone.profile,
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          height: 1.38,
+                          fontSize: 12.2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            drone.sensor,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_rounded, size: 20),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              const Spacer(),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: drone.tags
-                    .take(3)
-                    .map((tag) => Pill(label: tag, color: accent))
-                    .toList(),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      drone.sensor,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  const Icon(Icons.arrow_forward_rounded, size: 19),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _DroneDetails extends StatelessWidget {
-  const _DroneDetails({required this.drone});
+class _DroneImage extends StatelessWidget {
+  const _DroneImage({required this.drone, required this.height});
 
   final DroneCatalogItem drone;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = drone.accentColor;
+    return Container(
+      width: double.infinity,
+      height: height,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [accent.withOpacity(.24), const Color(0xFF081721)],
+        ),
+      ),
+      child: drone.imageAsset == null
+          ? Icon(Icons.flight_rounded, size: 70, color: accent)
+          : Padding(
+              padding: const EdgeInsets.all(10),
+              child: Image.asset(
+                drone.imageAsset!,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) =>
+                    Icon(Icons.flight_rounded, size: 70, color: accent),
+              ),
+            ),
+    );
+  }
+}
+
+class _DroneDetails extends StatelessWidget {
+  const _DroneDetails({
+    required this.drone,
+    required this.need,
+    required this.onOpenOfficial,
+    required this.onContact,
+  });
+
+  final DroneCatalogItem drone;
+  final DroneNeed need;
+  final VoidCallback? onOpenOfficial;
+  final VoidCallback onContact;
 
   @override
   Widget build(BuildContext context) {
     final accent = drone.accentColor;
     return DraggableScrollableSheet(
       expand: false,
-      initialChildSize: .82,
-      minChildSize: .55,
-      maxChildSize: .96,
-      builder: (context, scrollController) => ListView(
-        controller: scrollController,
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 34),
+      initialChildSize: .88,
+      minChildSize: .60,
+      maxChildSize: .97,
+      builder: (context, controller) => ListView(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(18, 10, 18, 34),
         children: [
           Center(
             child: Container(
-              width: 46,
+              width: 48,
               height: 4,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(.18),
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(.2),
                 borderRadius: BorderRadius.circular(99),
               ),
             ),
           ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Container(
-                width: 58,
-                height: 58,
-                decoration: BoxDecoration(
-                  color: accent.withOpacity(.14),
-                  borderRadius: BorderRadius.circular(19),
-                ),
-                child: Icon(Icons.flight_rounded, color: accent, size: 31),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(drone.name, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
-                    Text(drone.family, style: TextStyle(color: accent, fontWeight: FontWeight.w900)),
-                  ],
-                ),
-              ),
-            ],
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: _DroneImage(drone: drone, height: 210),
           ),
-          const SizedBox(height: 20),
-          Text(drone.profile, style: const TextStyle(fontSize: 15, height: 1.5)),
           const SizedBox(height: 18),
+          Text(
+            drone.name,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            drone.family,
+            style: TextStyle(color: accent, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: accent.withOpacity(.10),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: accent.withOpacity(.23)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  drone.priceLabel,
+                  style: TextStyle(
+                    color: accent,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                if (drone.officialPriceEur != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Référence DJI : ${drone.officialPriceEur} €',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ],
+                const SizedBox(height: 7),
+                Text(
+                  drone.priceNote.isEmpty
+                      ? 'Prix et disponibilité à confirmer auprès du fabricant ou du fournisseur.'
+                      : drone.priceNote,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 11.5,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           _DetailLine(icon: Icons.camera_alt_rounded, title: 'Capteur', text: drone.sensor, color: accent),
           _DetailLine(icon: Icons.gps_fixed_rounded, title: 'Positionnement', text: drone.positioning, color: cyan),
           _DetailLine(icon: Icons.battery_charging_full_rounded, title: 'Opération', text: drone.endurance, color: success),
           _DetailLine(icon: Icons.task_alt_rounded, title: 'Idéal pour', text: drone.bestFor, color: orange),
           _DetailLine(icon: Icons.warning_amber_rounded, title: 'À savoir', text: drone.limitations, color: danger),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: orange.withOpacity(.09),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: orange.withOpacity(.22)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Repère réglementaire ANACIM',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${drone.anacimClass} • scénario ${drone.anacimCodeFor(need)}',
+                  style: const TextStyle(color: orange, fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  drone.authorizationHintFor(need),
+                  style: const TextStyle(height: 1.42),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Repère pédagogique : la classe dépend de la masse totale et la catégorie dépend de l’usage réel. L’ANACIM reste seule compétente pour confirmer le régime applicable.',
+                  style: TextStyle(fontSize: 11.5, height: 1.4),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          FilledButton.icon(
+            onPressed: onContact,
+            icon: const Icon(Icons.shopping_bag_rounded),
+            label: const Text('Demander achat / disponibilité à Novateur221'),
+          ),
+          if (onOpenOfficial != null) ...[
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: onOpenOfficial,
+              icon: const Icon(Icons.open_in_new_rounded),
+              label: const Text('Voir la source officielle DJI'),
+            ),
+          ],
           const SizedBox(height: 10),
-          Text(
-            'Le choix final dépend aussi du budget, des autorisations, des conditions météo, du logiciel et du niveau de précision attendu.',
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.45),
+          OutlinedButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const RegulationScreen()),
+            ),
+            icon: const Icon(Icons.gavel_rounded),
+            label: const Text('Vérifier la classification et l’autorisation'),
           ),
         ],
       ),
@@ -502,6 +850,44 @@ class _DetailLine extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.onReset});
+
+  final VoidCallback onReset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const Icon(Icons.filter_alt_off_rounded, size: 52, color: orange),
+            const SizedBox(height: 12),
+            const Text(
+              'Aucun drone ne correspond à tous les filtres',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Essaie un budget plus large ou affiche aussi les drones d’apprentissage.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: onReset,
+              icon: const Icon(Icons.restart_alt_rounded),
+              label: const Text('Réinitialiser'),
+            ),
+          ],
+        ),
       ),
     );
   }

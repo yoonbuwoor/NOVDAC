@@ -14,6 +14,7 @@ class QuizHubScreen extends StatelessWidget {
       0,
       (total, pack) => total + pack.questions.length,
     );
+    final featured = quizPacks.where((pack) => pack.featured).toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Quiz & défis')),
@@ -23,102 +24,310 @@ class QuizHubScreen extends StatelessWidget {
             SliverToBoxAdapter(
               child: MaxWidthBox(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
-                  child: Container(
-                    padding: const EdgeInsets.all(22),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(28),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          cyan.withOpacity(.24),
-                          violet.withOpacity(.17),
-                          Theme.of(context).cardColor,
-                        ],
-                      ),
-                      border: Border.all(color: cyan.withOpacity(.22)),
-                    ),
-                    child: Row(
-                      children: [
-                        const GradientIcon(
-                          icon: Icons.quiz_rounded,
-                          size: 58,
-                          color: cyan,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Défi tes connaissances',
-                                style: TextStyle(
-                                  fontSize: 23,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: -.7,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                '${quizPacks.length} parcours • $totalQuestions questions • corrections expliquées',
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
-                                  height: 1.35,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+                  child: _QuizHero(
+                    packs: quizPacks.length,
+                    questions: totalQuestions,
+                    onStart: () => _openQuiz(context, featured.first),
+                  ),
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: MaxWidthBox(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                  child: const SectionHeading(
+                    eyebrow: 'À FAIRE EN PRIORITÉ',
+                    title: 'Défis recommandés',
+                    subtitle:
+                        'Les quiz essentiels pour voler, planifier et travailler dans le bon cadre.',
+                  ),
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: MaxWidthBox(
+                child: SizedBox(
+                  height: 260,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: featured.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) => _FeaturedQuizCard(
+                      pack: featured[index],
+                      onTap: () => _openQuiz(context, featured[index]),
                     ),
                   ),
                 ),
               ),
             ),
+            SliverToBoxAdapter(
+              child: MaxWidthBox(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 26, 16, 10),
+                  child: const SectionHeading(
+                    eyebrow: 'TOUS LES PARCOURS',
+                    title: 'Choisis ton thème',
+                    subtitle:
+                        'Chaque réponse est corrigée et expliquée immédiatement.',
+                  ),
+                ),
+              ),
+            ),
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-              sliver: SliverLayoutBuilder(
-                builder: (context, constraints) {
-                  final width = constraints.crossAxisExtent;
-                  final columns = width >= 980
-                      ? 3
-                      : width >= 620
-                          ? 2
-                          : 1;
-                  return SliverGrid(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: columns,
-                      mainAxisSpacing: 13,
-                      crossAxisSpacing: 13,
-                      childAspectRatio: columns == 1 ? 2.05 : 1.34,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final pack = quizPacks[index];
-                        return _QuizPackCard(
-                          pack: pack,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => QuizScreen(
-                                title: pack.title,
-                                subtitle: pack.subtitle,
-                                questions: pack.questions,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      childCount: quizPacks.length,
-                    ),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+              sliver: SliverList.separated(
+                itemCount: quizPacks.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 11),
+                itemBuilder: (context, index) {
+                  final pack = quizPacks[index];
+                  return _QuizPackCard(
+                    pack: pack,
+                    onTap: () => _openQuiz(context, pack),
                   );
                 },
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _openQuiz(BuildContext context, QuizPack pack) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => QuizScreen(
+          title: pack.title,
+          subtitle:
+              '${pack.questions.length} questions • ${pack.minutes} min • ${pack.xp} XP',
+          questions: pack.questions,
+        ),
+      ),
+    );
+  }
+}
+
+class _QuizHero extends StatelessWidget {
+  const _QuizHero({
+    required this.packs,
+    required this.questions,
+    required this.onStart,
+  });
+
+  final int packs;
+  final int questions;
+  final VoidCallback onStart;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF5B102F), Color(0xFF261238), Color(0xFF071D27)],
+        ),
+        border: Border.all(color: orange.withOpacity(.34)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GradientIcon(icon: Icons.quiz_rounded, size: 62, color: orange),
+              SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Quiz Academy',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Teste-toi, comprends tes erreurs et consolide tes réflexes terrain.',
+                      style: TextStyle(color: Colors.white70, height: 1.4),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(
+                child: _StatTile(
+                  icon: Icons.route_rounded,
+                  value: '$packs',
+                  label: 'parcours',
+                  color: cyan,
+                ),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: _StatTile(
+                  icon: Icons.help_center_rounded,
+                  value: '$questions',
+                  label: 'questions',
+                  color: orange,
+                ),
+              ),
+              const SizedBox(width: 9),
+              const Expanded(
+                child: _StatTile(
+                  icon: Icons.lightbulb_rounded,
+                  value: '100%',
+                  label: 'expliqué',
+                  color: success,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: onStart,
+              icon: const Icon(Icons.play_arrow_rounded),
+              label: const Text('Commencer le défi ANACIM'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  const _StatTile({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(.055),
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: Colors.white.withOpacity(.08)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white60, fontSize: 10),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeaturedQuizCard extends StatelessWidget {
+  const _FeaturedQuizCard({required this.pack, required this.onTap});
+
+  final QuizPack pack;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = pack.accentColor;
+    return SizedBox(
+      width: 300,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(19),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [color.withOpacity(.24), Colors.transparent],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 25,
+                      backgroundColor: color.withOpacity(.16),
+                      child: Icon(pack.icon, color: color, size: 27),
+                    ),
+                    const Spacer(),
+                    Pill(label: pack.difficulty, color: color),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  pack.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 7),
+                Expanded(
+                  child: Text(
+                    pack.subtitle,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      height: 1.38,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    _Meta(icon: Icons.help_outline_rounded, label: '${pack.questions.length}'),
+                    const SizedBox(width: 12),
+                    _Meta(icon: Icons.schedule_rounded, label: '${pack.minutes} min'),
+                    const Spacer(),
+                    Text(
+                      '+${pack.xp} XP',
+                      style: TextStyle(color: color, fontWeight: FontWeight.w900),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -133,68 +342,97 @@ class _QuizPackCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = pack.accentColor;
+    final color = pack.accentColor;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(16),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: 58,
+                height: 58,
                 decoration: BoxDecoration(
-                  color: accent.withOpacity(.14),
+                  color: color.withOpacity(.14),
                   borderRadius: BorderRadius.circular(19),
                 ),
-                child: Icon(pack.icon, color: accent, size: 29),
+                child: Icon(pack.icon, color: color, size: 30),
               ),
-              const SizedBox(width: 15),
+              const SizedBox(width: 13),
               Expanded(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      pack.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            pack.title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                      ],
                     ),
                     const SizedBox(height: 5),
                     Text(
                       pack.subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        height: 1.35,
                         fontSize: 12,
+                        height: 1.35,
                       ),
                     ),
-                    const SizedBox(height: 9),
-                    Text(
-                      '${pack.questions.length} questions',
-                      style: TextStyle(
-                        color: accent,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 11,
-                      ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 9,
+                      runSpacing: 7,
+                      children: [
+                        Pill(label: pack.difficulty, color: color),
+                        _Meta(icon: Icons.help_outline_rounded, label: '${pack.questions.length} questions'),
+                        _Meta(icon: Icons.schedule_rounded, label: '${pack.minutes} min'),
+                        _Meta(icon: Icons.stars_rounded, label: '${pack.xp} XP'),
+                      ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 6),
-              Icon(Icons.arrow_forward_rounded, color: accent),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _Meta extends StatelessWidget {
+  const _Meta({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }
