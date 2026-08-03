@@ -10,13 +10,14 @@ import 'regulation_screen.dart';
 
 // WhatsApp attend le numéro international sans le préfixe 00.
 const _novateur221SalesPhone = '221782780302';
-const _novateur221SalesPhoneDisplay = '00221782780302';
 
 String _novateur221SalesWhatsAppUrl([String? droneName]) {
   final subject = droneName == null ? 'un drone DJI' : droneName;
   final message =
       'Bonjour Novateur221, je souhaite recevoir des renseignements sur '
-      'l’achat et la disponibilité de $subject via DroneAtlas Academy.';
+      '$subject via DroneAtlas Academy et être mis(e) en relation avec un '
+      'fournisseur certifié. Je comprends que Novateur221 ne vend pas '
+      'directement les drones.';
   return 'https://wa.me/$_novateur221SalesPhone?text=${Uri.encodeComponent(message)}';
 }
 
@@ -349,7 +350,7 @@ class _SelectorHero extends StatelessWidget {
                     ),
                     SizedBox(height: 5),
                     Text(
-                      'Choisis ton domaine et ton budget. DroneAtlas compare les capteurs, la précision, la productivité et la logistique. Pour acheter, contacte Novateur221 sur WhatsApp.',
+                      'Choisis ton domaine et ton budget. DroneAtlas compare les capteurs, la précision, la productivité et la logistique. Novateur221 ne vend pas directement les drones : nous facilitons la mise en relation avec des fournisseurs certifiés.',
                       style: TextStyle(color: Colors.white70, height: 1.42),
                     ),
                   ],
@@ -409,11 +410,11 @@ class _SelectorHero extends StatelessWidget {
           FilledButton.icon(
             onPressed: onContact,
             icon: const Icon(Icons.chat_rounded),
-            label: Text('Renseignements achat • $_novateur221SalesPhoneDisplay'),
+            label: const Text('Demander des renseignements'),
           ),
           const SizedBox(height: 12),
           const Text(
-            'Prix indicatifs convertis depuis les tarifs neufs du DJI Store officiel au taux fixe euro/F CFA. Hors livraison, douane, taxes locales, batteries supplémentaires et accessoires. Certains systèmes professionnels sont uniquement sur devis.',
+            'Prix indicatifs convertis depuis les tarifs neufs du DJI Store officiel au taux fixe euro/F CFA. Hors livraison, douane, taxes locales, batteries supplémentaires et accessoires. Certains systèmes professionnels sont uniquement sur devis. Novateur221 ne vend pas directement les drones et facilite la mise en relation avec des fournisseurs certifiés.',
             style: TextStyle(color: Colors.white60, fontSize: 11, height: 1.4),
           ),
         ],
@@ -747,7 +748,7 @@ class _DroneDetails extends StatelessWidget {
                 const SizedBox(height: 7),
                 Text(
                   drone.priceNote.isEmpty
-                      ? 'Prix et disponibilité à confirmer. Contacte Novateur221 au 00221782780302 via WhatsApp.'
+                      ? 'Prix et disponibilité à confirmer auprès du fournisseur. Novateur221 facilite uniquement la mise en relation avec des fournisseurs certifiés et ne vend pas directement les drones.'
                       : drone.priceNote,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -801,7 +802,7 @@ class _DroneDetails extends StatelessWidget {
           FilledButton.icon(
             onPressed: onContact,
             icon: const Icon(Icons.chat_rounded),
-            label: Text('WhatsApp achat • $_novateur221SalesPhoneDisplay'),
+            label: const Text('Demander une mise en relation'),
           ),
           if (onOpenOfficial != null) ...[
             const SizedBox(height: 10),
