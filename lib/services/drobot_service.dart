@@ -451,7 +451,7 @@ class DrobotService {
             : '✅ Altitude ${_fmt(altitude)} m : sous 300 ft AGL, mais les autres règles restent à vérifier.';
 
     return DrobotReply(
-      text: '**Repères ANACIM intégrés**
+      text: '''**Repères ANACIM intégrés**
 
 $altitudeMessage
 • Les opérations de nuit nécessitent une autorisation spéciale.
@@ -460,7 +460,7 @@ $altitudeMessage
 • Le voisinage des aérodromes comporte des rayons de protection selon la longueur de piste.
 • Le survol d’une zone urbaine ou encombrée nécessite une autorisation spéciale.
 
-Le module Réglementation présente le résumé pédagogique de l’Annexe 5. Pour une mission réelle, consulte la version officielle à jour et les autorisations applicables.',
+Le module Réglementation présente le résumé pédagogique de l’Annexe 5. Pour une mission réelle, consulte la version officielle à jour et les autorisations applicables.''',
       source: 'Annexe 5 au RAS 06 • résumé pédagogique',
       suggestions: const <String>[
         'Explique la limite des 300 pieds',
