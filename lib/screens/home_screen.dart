@@ -335,6 +335,8 @@ class HomeScreen extends StatelessWidget {
                   resources: academyResources.length,
                   visuals: academyResources.where((item) => item.visualAsset != null).length,
                   drones: djiDroneCatalog.length,
+                  isDark: isDark,
+                  onToggleTheme: onToggleTheme,
                 ),
               ),
             ),
@@ -498,6 +500,8 @@ class _TotalContentStrip extends StatelessWidget {
     required this.resources,
     required this.visuals,
     required this.drones,
+    required this.isDark,
+    required this.onToggleTheme,
   });
 
   final int quizzes;
@@ -505,6 +509,8 @@ class _TotalContentStrip extends StatelessWidget {
   final int resources;
   final int visuals;
   final int drones;
+  final bool isDark;
+  final VoidCallback onToggleTheme;
 
   @override
   Widget build(BuildContext context) {
