@@ -58,7 +58,7 @@ class _LearnScreenState extends State<LearnScreen> {
 
     final mediaQuery = MediaQuery.of(context);
     return MediaQuery(
-      data: mediaQuery.copyWith(textScaler: TextScaler.noScaling),
+      data: mediaQuery.copyWith(textScaler: const TextScaler.linear(.90)),
       child: CustomScrollView(
         slivers: [
         SliverToBoxAdapter(
@@ -180,7 +180,7 @@ class _LearnScreenState extends State<LearnScreen> {
           child: MaxWidthBox(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
-              child: SectionHeading(
+              child: _CompactSectionHeading(
                 title: _query.isEmpty ? 'Parcours en ${modules.length} modules' : '${filtered.length + remoteFiltered.length} résultat(s)',
                 subtitle: _query.isEmpty
                     ? 'Chaque module associe théorie, démonstration et vérification.'
@@ -226,6 +226,85 @@ class _LearnScreenState extends State<LearnScreen> {
   }
 }
 
+
+
+class _CompactAcademyPill extends StatelessWidget {
+  const _CompactAcademyPill();
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: violet.withOpacity(.13),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: violet.withOpacity(.30)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.route_rounded, size: 14, color: violet),
+            SizedBox(width: 6),
+            Text(
+              'PARCOURS DRONEATLAS',
+              style: TextStyle(
+                fontSize: 9.5,
+                height: 1,
+                fontWeight: FontWeight.w900,
+                letterSpacing: .55,
+                color: violet,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactSectionHeading extends StatelessWidget {
+  const _CompactSectionHeading({
+    required this.title,
+    required this.subtitle,
+  });
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final compact = MediaQuery.sizeOf(context).width < 430;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: compact ? 17 : 20,
+            height: 1.12,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -.25,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: compact ? 10.5 : 11.5,
+            height: 1.28,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class _AcademyQuickAccess extends StatelessWidget {
   const _AcademyQuickAccess({
@@ -362,7 +441,7 @@ class _AcademyHeader extends StatelessWidget {
     final total = totalLessonCount + controller.remoteCourses.length;
     final progress = controller.courseProgress(total);
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 430 ? 16 : 20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         gradient: LinearGradient(
@@ -378,19 +457,33 @@ class _AcademyHeader extends StatelessWidget {
           final info = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Pill(label: 'PARCOURS DRONEATLAS', icon: Icons.route_rounded, color: violet),
-              const SizedBox(height: 14),
-              Text('De novice à opérateur augmenté', style: TextStyle(fontSize: MediaQuery.sizeOf(context).width < 430 ? 21 : 25, fontWeight: FontWeight.w900, letterSpacing: -.6)),
-              const SizedBox(height: 7),
+              const _CompactAcademyPill(),
+              const SizedBox(height: 11),
+              Text(
+                'De novice à opérateur augmenté',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: MediaQuery.sizeOf(context).width < 430 ? 18 : 21,
+                  height: 1.08,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -.35,
+                ),
+              ),
+              const SizedBox(height: 6),
               Text(
                 '${totalLessonCount + controller.remoteCourses.length} leçons courtes : pilotage, photo, planification, terrain, traitement, SIG, sécurité, capteurs avancés, IA géospatiale et activité professionnelle.',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.4),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  height: 1.32,
+                  fontSize: MediaQuery.sizeOf(context).width < 430 ? 11.5 : 12.5,
+                ),
               ),
             ],
           );
           final progressCard = Container(
             width: wide ? 210 : double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
               color: Theme.of(context).cardTheme.color?.withOpacity(.62),
               borderRadius: BorderRadius.circular(20),
@@ -404,9 +497,18 @@ class _AcademyHeader extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${controller.completedLessons.length} leçons', style: const TextStyle(fontWeight: FontWeight.w900)),
+                      Text(
+                        '${controller.completedLessons.length} leçons',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
+                      ),
                       const SizedBox(height: 4),
-                      Text('sur $total validées', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      Text(
+                        'sur $total validées',
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -450,9 +552,9 @@ class _ModuleCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Text(module.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+              Text(module.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w900)),
               const SizedBox(height: 6),
-              Text(module.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.32, fontSize: 12)),
+              Text(module.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.32, fontSize: 11.5)),
               const Spacer(),
               ...module.lessons.take(2).map(
                     (lesson) => Padding(
