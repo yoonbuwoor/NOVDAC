@@ -64,6 +64,7 @@ class _MainShellState extends State<MainShell> {
         onOpenLab: () => _goTo(2),
         onOpenMissions: () => _openMissions(context),
         onOpenDrobot: () => _goTo(1),
+        onOpenDrones: () => _goTo(3),
       ),
       DrobotHomeScreen(
         isDark: widget.isDark,

@@ -14,7 +14,6 @@ import '../widgets/flight_readiness_card.dart';
 import 'course_detail_screen.dart';
 import 'domain_detail_screen.dart';
 import 'glossary_screen.dart';
-import 'drone_catalog_screen.dart';
 import 'mission_player_screen.dart';
 import 'quiz_hub_screen.dart';
 import 'regulation_screen.dart';
@@ -30,6 +29,7 @@ class HomeScreen extends StatelessWidget {
     required this.onOpenLab,
     required this.onOpenMissions,
     required this.onOpenDrobot,
+    required this.onOpenDrones,
   });
 
   final bool isDark;
@@ -38,6 +38,7 @@ class HomeScreen extends StatelessWidget {
   final VoidCallback onOpenLab;
   final VoidCallback onOpenMissions;
   final VoidCallback onOpenDrobot;
+  final VoidCallback onOpenDrones;
 
   @override
   Widget build(BuildContext context) {
@@ -279,15 +280,7 @@ class HomeScreen extends StatelessWidget {
                           color: success,
                           title: 'Choisir un drone',
                           subtitle: '${djiDroneCatalog.length} options selon budget et domaine',
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DroneCatalogScreen(
-                                isDark: isDark,
-                                onToggleTheme: onToggleTheme,
-                              ),
-                            ),
-                          ),
+                          onTap: onOpenDrones,
                         ),
                         _QuickAction(
                           icon: Icons.gavel_rounded,
@@ -540,15 +533,7 @@ class _TotalContentStrip extends StatelessWidget {
             title: '$drones drones',
             subtitle: 'Choix par besoin et budget',
             button: 'Trouver ma configuration',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => DroneCatalogScreen(
-                  isDark: isDark,
-                  onToggleTheme: onToggleTheme,
-                ),
-              ),
-            ),
+            onTap: onOpenDrones,
           ),
         ];
         if (wide) {
@@ -1108,7 +1093,22 @@ class _QuickAction extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+          SizedBox(
+            width: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                title,
+                maxLines: 1,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -.15,
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 5),
           Text(
             subtitle,
