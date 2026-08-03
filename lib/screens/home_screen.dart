@@ -281,7 +281,12 @@ class HomeScreen extends StatelessWidget {
                           subtitle: '${djiDroneCatalog.length} options selon budget et domaine',
                           onTap: () => Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const DroneCatalogScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => DroneCatalogScreen(
+                                isDark: isDark,
+                                onToggleTheme: onToggleTheme,
+                              ),
+                            ),
                           ),
                         ),
                         _QuickAction(
@@ -529,7 +534,15 @@ class _TotalContentStrip extends StatelessWidget {
             title: '$drones drones',
             subtitle: 'Choix par besoin et budget',
             button: 'Trouver ma configuration',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DroneCatalogScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DroneCatalogScreen(
+                  isDark: isDark,
+                  onToggleTheme: onToggleTheme,
+                ),
+              ),
+            ),
           ),
         ];
         if (wide) {

@@ -12,7 +12,7 @@ import 'regulation_screen.dart';
 const _novateur221SalesPhone = '221782780302';
 
 String _novateur221SalesWhatsAppUrl([String? droneName]) {
-  final subject = droneName == null ? 'un drone DJI' : droneName;
+  final subject = droneName ?? 'un drone DJI';
   final message =
       'Bonjour Novateur221, je souhaite recevoir des renseignements sur '
       '$subject via DroneAtlas Academy. Pouvez-vous m’aider à vérifier le '
