@@ -15,9 +15,9 @@ String _novateur221SalesWhatsAppUrl([String? droneName]) {
   final subject = droneName == null ? 'un drone DJI' : droneName;
   final message =
       'Bonjour Novateur221, je souhaite recevoir des renseignements sur '
-      '$subject via DroneAtlas Academy et être mis(e) en relation avec un '
-      'fournisseur certifié. Je comprends que Novateur221 ne vend pas '
-      'directement les drones.';
+      '$subject via DroneAtlas Academy. Pouvez-vous m’aider à vérifier le '
+      'prix, la disponibilité et à identifier un fournisseur certifié adapté '
+      'à mon besoin ?';
   return 'https://wa.me/$_novateur221SalesPhone?text=${Uri.encodeComponent(message)}';
 }
 
@@ -410,7 +410,7 @@ class _SelectorHero extends StatelessWidget {
           FilledButton.icon(
             onPressed: onContact,
             icon: const Icon(Icons.chat_rounded),
-            label: const Text('Demander des renseignements'),
+            label: const Text('Recevoir un conseil personnalisé'),
           ),
           const SizedBox(height: 12),
           const Text(
@@ -802,7 +802,7 @@ class _DroneDetails extends StatelessWidget {
           FilledButton.icon(
             onPressed: onContact,
             icon: const Icon(Icons.chat_rounded),
-            label: const Text('Demander une mise en relation'),
+            label: const Text('Vérifier prix et disponibilité'),
           ),
           if (onOpenOfficial != null) ...[
             const SizedBox(height: 10),
