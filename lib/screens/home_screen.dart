@@ -5,16 +5,21 @@ import 'package:flutter/material.dart';
 import '../controllers/app_controller.dart';
 import '../core/theme.dart';
 import '../data/academy_data.dart';
+import '../data/drone_catalog_data.dart';
+import '../data/quiz_catalog.dart';
+import '../data/resource_library.dart';
 import '../models/academy_models.dart';
 import '../widgets/common.dart';
 import '../widgets/flight_readiness_card.dart';
 import 'course_detail_screen.dart';
 import 'domain_detail_screen.dart';
 import 'glossary_screen.dart';
+import 'drone_catalog_screen.dart';
 import 'mission_player_screen.dart';
 import 'quiz_hub_screen.dart';
 import 'regulation_screen.dart';
 import 'report_screen.dart';
+import 'resources_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
@@ -39,6 +44,10 @@ class HomeScreen extends StatelessWidget {
     final controller = AppScope.of(context);
     final progress = controller.courseProgress(totalLessonCount);
     final next = _nextLesson(controller);
+    final totalQuizQuestions = quizPacks.fold<int>(
+      0,
+      (total, pack) => total + pack.questions.length,
+    );
 
     return AmbientBackground(
       child: CustomScrollView(
@@ -87,18 +96,32 @@ class HomeScreen extends StatelessWidget {
                           delta: '${(progress * 100).round()}%',
                         ),
                         MetricCard(
+                          value: '${quizPacks.length}',
+                          label: 'Parcours quiz',
+                          icon: Icons.quiz_rounded,
+                          accent: danger,
+                          delta: '$totalQuizQuestions QUESTIONS',
+                        ),
+                        MetricCard(
+                          value: '${academyResources.length}',
+                          label: 'Ressources terrain',
+                          icon: Icons.auto_stories_rounded,
+                          accent: cyan,
+                          delta: '${academyResources.where((item) => item.visualAsset != null).length} FICHES HD',
+                        ),
+                        MetricCard(
+                          value: '${djiDroneCatalog.length}',
+                          label: 'Drones & configurations',
+                          icon: Icons.flight_rounded,
+                          accent: orange,
+                          delta: 'BUDGET + USAGE',
+                        ),
+                        MetricCard(
                           value: '${controller.xp}',
                           label: 'Points d’expérience',
                           icon: Icons.bolt_rounded,
                           accent: orange,
                           delta: 'NIV ${math.max(1, controller.xp ~/ 500 + 1)}',
-                        ),
-                        MetricCard(
-                          value: '6',
-                          label: 'Quiz thématiques',
-                          icon: Icons.quiz_rounded,
-                          accent: danger,
-                          delta: '54 QUESTIONS',
                         ),
                         MetricCard(
                           value: '${controller.completedMissions.length}/${missions.length}',
@@ -235,10 +258,30 @@ class HomeScreen extends StatelessWidget {
                           icon: Icons.quiz_rounded,
                           color: orange,
                           title: 'Quiz & défis',
-                          subtitle: 'Six parcours avec corrections',
+                          subtitle: '${quizPacks.length} parcours · $totalQuizQuestions questions',
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(builder: (_) => const QuizHubScreen()),
+                          ),
+                        ),
+                        _QuickAction(
+                          icon: Icons.auto_stories_rounded,
+                          color: cyan,
+                          title: 'Ressources terrain',
+                          subtitle: '${academyResources.length} fiches dont un atlas visuel HD',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const ResourcesScreen()),
+                          ),
+                        ),
+                        _QuickAction(
+                          icon: Icons.flight_takeoff_rounded,
+                          color: success,
+                          title: 'Choisir un drone',
+                          subtitle: '${djiDroneCatalog.length} options selon budget et domaine',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const DroneCatalogScreen()),
                           ),
                         ),
                         _QuickAction(
@@ -261,6 +304,32 @@ class HomeScreen extends StatelessWidget {
                       ],
                     );
                   },
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: MaxWidthBox(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 34, 20, 12),
+                child: const SectionHeading(
+                  eyebrow: 'PACK TOTAL HORS LIGNE',
+                  title: 'Réviser, consulter et choisir au même endroit',
+                  subtitle: 'Les quiz, les fiches terrain illustrées et le catalogue de drones sont maintenant au premier plan.',
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: MaxWidthBox(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _TotalContentStrip(
+                  quizzes: quizPacks.length,
+                  questions: totalQuizQuestions,
+                  resources: academyResources.length,
+                  visuals: academyResources.where((item) => item.visualAsset != null).length,
+                  drones: djiDroneCatalog.length,
                 ),
               ),
             ),
@@ -411,6 +480,139 @@ class HomeScreen extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (_) => CourseDetailScreen(module: module, initialLesson: lesson),
+      ),
+    );
+  }
+}
+
+
+class _TotalContentStrip extends StatelessWidget {
+  const _TotalContentStrip({
+    required this.quizzes,
+    required this.questions,
+    required this.resources,
+    required this.visuals,
+    required this.drones,
+  });
+
+  final int quizzes;
+  final int questions;
+  final int resources;
+  final int visuals;
+  final int drones;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 760;
+        final cards = [
+          _TotalContentCard(
+            icon: Icons.quiz_rounded,
+            color: orange,
+            title: '$quizzes quiz',
+            subtitle: '$questions questions expliquées',
+            button: 'Réviser maintenant',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizHubScreen())),
+          ),
+          _TotalContentCard(
+            icon: Icons.auto_stories_rounded,
+            color: cyan,
+            title: '$resources ressources',
+            subtitle: '$visuals fiches HD hors ligne',
+            button: 'Ouvrir la bibliothèque',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ResourcesScreen())),
+          ),
+          _TotalContentCard(
+            icon: Icons.flight_rounded,
+            color: success,
+            title: '$drones drones',
+            subtitle: 'Choix par besoin et budget',
+            button: 'Trouver ma configuration',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DroneCatalogScreen())),
+          ),
+        ];
+        if (wide) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < cards.length; i++) ...[
+                Expanded(child: cards[i]),
+                if (i != cards.length - 1) const SizedBox(width: 12),
+              ],
+            ],
+          );
+        }
+        return Column(
+          children: [
+            for (var i = 0; i < cards.length; i++) ...[
+              cards[i],
+              if (i != cards.length - 1) const SizedBox(height: 10),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _TotalContentCard extends StatelessWidget {
+  const _TotalContentCard({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.subtitle,
+    required this.button,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String subtitle;
+  final String button;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [color.withOpacity(.20), Colors.transparent],
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(color: color.withOpacity(.15), borderRadius: BorderRadius.circular(18)),
+                child: Icon(icon, color: color, size: 30),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 4),
+                    Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12, height: 1.35)),
+                    const SizedBox(height: 8),
+                    Text(button, style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios_rounded, color: color, size: 16),
+            ],
+          ),
+        ),
       ),
     );
   }
