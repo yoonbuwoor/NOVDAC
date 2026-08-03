@@ -58,16 +58,15 @@ class _LearnScreenState extends State<LearnScreen> {
 
     final mediaQuery = MediaQuery.of(context);
     return MediaQuery(
-      data: mediaQuery.copyWith(textScaler: const TextScaler.linear(.90)),
+      data: mediaQuery.copyWith(textScaler: const TextScaler.linear(1.0)),
       child: CustomScrollView(
         slivers: [
         SliverToBoxAdapter(
           child: MaxWidthBox(
-            child: BrandBar(
+            child: _AcademyTopBar(
               isDark: widget.isDark,
               onToggleTheme: widget.onToggleTheme,
-              title: 'Académie',
-              subtitle: '${modules.length} modules • drone, capteurs, SIG, IA et métier',
+              moduleCount: modules.length,
             ),
           ),
         ),
@@ -208,7 +207,7 @@ class _LearnScreenState extends State<LearnScreen> {
                       crossAxisCount: columns,
                       mainAxisSpacing: 14,
                       crossAxisSpacing: 14,
-                      childAspectRatio: columns == 1 ? .98 : 1.02,
+                      mainAxisExtent: columns == 1 ? 372 : 356,
                     ),
                     itemBuilder: (context, index) => _ModuleCard(
                       module: filtered[index],
@@ -228,6 +227,86 @@ class _LearnScreenState extends State<LearnScreen> {
 
 
 
+class _AcademyTopBar extends StatelessWidget {
+  const _AcademyTopBar({
+    required this.isDark,
+    required this.onToggleTheme,
+    required this.moduleCount,
+  });
+
+  final bool isDark;
+  final VoidCallback onToggleTheme;
+  final int moduleCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final compact = MediaQuery.sizeOf(context).width < 430;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(compact ? 16 : 22, 16, compact ? 16 : 22, 12),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(19),
+              border: Border.all(color: cyan.withOpacity(.22)),
+              boxShadow: [
+                BoxShadow(
+                  color: cyan.withOpacity(.12),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Image.asset('assets/images/logo.webp'),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Académie',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: compact ? 27 : 30,
+                    height: 1.12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '$moduleCount modules • drone, capteurs, SIG, IA et métier',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(.82),
+                    fontSize: compact ? 14 : 15,
+                    height: 1.35,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton.filledTonal(
+            tooltip: isDark ? 'Mode clair' : 'Mode sombre',
+            onPressed: onToggleTheme,
+            icon: Icon(isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
 class _CompactAcademyPill extends StatelessWidget {
   const _CompactAcademyPill();
 
@@ -236,25 +315,25 @@ class _CompactAcademyPill extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: violet.withOpacity(.13),
+          color: orange.withOpacity(.16),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: violet.withOpacity(.30)),
+          border: Border.all(color: orange.withOpacity(.48), width: 1.2),
         ),
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.route_rounded, size: 14, color: violet),
+            Icon(Icons.route_rounded, size: 18, color: orange),
             SizedBox(width: 6),
             Text(
               'PARCOURS DRONEATLAS',
               style: TextStyle(
-                fontSize: 9.5,
-                height: 1,
-                fontWeight: FontWeight.w900,
-                letterSpacing: .55,
-                color: violet,
+                fontSize: 13,
+                height: 1.2,
+                fontWeight: FontWeight.w800,
+                letterSpacing: .35,
+                color: orange,
               ),
             ),
           ],
@@ -284,10 +363,10 @@ class _CompactSectionHeading extends StatelessWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: compact ? 17 : 20,
-            height: 1.12,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -.25,
+            fontSize: compact ? 25 : 29,
+            height: 1.16,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0,
           ),
         ),
         const SizedBox(height: 4),
@@ -296,9 +375,9 @@ class _CompactSectionHeading extends StatelessWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: compact ? 10.5 : 11.5,
-            height: 1.28,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: compact ? 15 : 16,
+            height: 1.48,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(.82),
           ),
         ),
       ],
@@ -325,14 +404,14 @@ class _AcademyQuickAccess extends StatelessWidget {
         final cards = [
           _AcademyAccessCard(
             title: 'Quiz & défis',
-            subtitle: 'Classes ANACIM, sécurité, photo, SIG et DJI',
+            subtitle: '190 questions : ANACIM, sécurité, photo, SIG et DJI',
             icon: Icons.quiz_rounded,
             color: orange,
             onTap: onQuiz,
           ),
           _AcademyAccessCard(
             title: 'Ressources',
-            subtitle: '30 fiches terrain, traitement et métier',
+            subtitle: '107 ressources : terrain, traitement, SIG et métier',
             icon: Icons.library_books_rounded,
             color: cyan,
             onTap: onResources,
@@ -390,39 +469,48 @@ class _AcademyAccessCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(17),
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 54,
+                height: 54,
                 decoration: BoxDecoration(
                   color: color.withOpacity(.14),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                child: Icon(icon, color: color),
+                child: Icon(icon, color: color, size: 28),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 18,
+                        height: 1.2,
+                        fontWeight: FontWeight.w800,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: 11,
-                        height: 1.3,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(.82),
+                        fontSize: 14,
+                        height: 1.42,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded, size: 15),
+              Icon(Icons.arrow_forward_ios_rounded, size: 17, color: color),
             ],
           ),
         ),
@@ -441,15 +529,15 @@ class _AcademyHeader extends StatelessWidget {
     final total = totalLessonCount + controller.remoteCourses.length;
     final progress = controller.courseProgress(total);
     return Container(
-      padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 430 ? 16 : 20),
+      padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 430 ? 21 : 26),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(30),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [violet.withOpacity(.24), electricBlue.withOpacity(.10), cyan.withOpacity(.06)],
+          colors: [cyan.withOpacity(.22), violet.withOpacity(.20), orange.withOpacity(.08)],
         ),
-        border: Border.all(color: violet.withOpacity(.22)),
+        border: Border.all(color: cyan.withOpacity(.36), width: 1.2),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -464,29 +552,30 @@ class _AcademyHeader extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: MediaQuery.sizeOf(context).width < 430 ? 18 : 21,
-                  height: 1.08,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -.35,
+                  fontSize: MediaQuery.sizeOf(context).width < 430 ? 28 : 32,
+                  height: 1.14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 '${totalLessonCount + controller.remoteCourses.length} leçons courtes : pilotage, photo, planification, terrain, traitement, SIG, sécurité, capteurs avancés, IA géospatiale et activité professionnelle.',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  height: 1.32,
-                  fontSize: MediaQuery.sizeOf(context).width < 430 ? 11.5 : 12.5,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(.86),
+                  height: 1.52,
+                  fontSize: MediaQuery.sizeOf(context).width < 430 ? 15 : 16,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           );
           final progressCard = Container(
             width: wide ? 210 : double.infinity,
-            padding: const EdgeInsets.all(13),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Theme.of(context).cardTheme.color?.withOpacity(.62),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(22),
             ),
             child: Row(
               mainAxisSize: wide ? MainAxisSize.min : MainAxisSize.max,
@@ -499,14 +588,15 @@ class _AcademyHeader extends StatelessWidget {
                     children: [
                       Text(
                         '${controller.completedLessons.length} leçons',
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'sur $total validées',
                         style: TextStyle(
-                          fontSize: 10.5,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(.82),
                         ),
                       ),
                     ],
@@ -536,11 +626,12 @@ class _ModuleCard extends StatelessWidget {
     final done = module.lessons.where((lesson) => controller.lessonCompleted(lesson.id)).length;
     final progress = done / module.lessons.length;
     return Card(
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
         onTap: () => _openLesson(context, module, module.lessons.first),
         child: Padding(
-          padding: const EdgeInsets.all(19),
+          padding: const EdgeInsets.all(21),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -548,13 +639,33 @@ class _ModuleCard extends StatelessWidget {
                 children: [
                   GradientIcon(icon: module.icon, color: module.accent, size: 50),
                   const Spacer(),
-                  Text(module.number, style: TextStyle(color: module.accent, fontSize: 24, fontWeight: FontWeight.w900)),
+                  Text(module.number, style: TextStyle(color: module.accent, fontSize: 24, fontWeight: FontWeight.w800)),
                 ],
               ),
               const SizedBox(height: 16),
-              Text(module.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w900)),
+              Text(
+                module.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 20,
+                  height: 1.18,
+                  fontWeight: FontWeight.w800,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
               const SizedBox(height: 6),
-              Text(module.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.32, fontSize: 11.5)),
+              Text(
+                module.subtitle,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(.82),
+                  height: 1.48,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const Spacer(),
               ...module.lessons.take(2).map(
                     (lesson) => Padding(
@@ -563,7 +674,7 @@ class _ModuleCard extends StatelessWidget {
                         children: [
                           Icon(controller.lessonCompleted(lesson.id) ? Icons.check_circle_rounded : Icons.play_circle_outline_rounded, size: 17, color: controller.lessonCompleted(lesson.id) ? success : module.accent),
                           const SizedBox(width: 7),
-                          Expanded(child: Text(lesson.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+                          Expanded(child: Text(lesson.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, height: 1.28, fontWeight: FontWeight.w600))),
                         ],
                       ),
                     ),
@@ -581,7 +692,7 @@ class _ModuleCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Text('$done/${module.lessons.length}', style: TextStyle(color: module.accent, fontWeight: FontWeight.w900)),
+                  Text('$done/${module.lessons.length}', style: TextStyle(color: module.accent, fontSize: 14, fontWeight: FontWeight.w800)),
                 ],
               ),
             ],
@@ -646,7 +757,7 @@ class _RemoteCourseCard extends StatelessWidget {
                   course.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+                  style: const TextStyle(fontSize: 19, height: 1.2, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -654,8 +765,10 @@ class _RemoteCourseCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 13.5,
+                    height: 1.42,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(.82),
                   ),
                 ),
                 const Spacer(),
@@ -663,8 +776,8 @@ class _RemoteCourseCard extends StatelessWidget {
                   completed ? 'Cours validé' : '${course.category} • ${course.level}',
                   style: TextStyle(
                     color: completed ? success : violet,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ],
