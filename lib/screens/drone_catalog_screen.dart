@@ -8,8 +8,17 @@ import '../widgets/common.dart';
 import 'drone_history_screen.dart';
 import 'regulation_screen.dart';
 
-const _droneAtlasGroupUrl =
-    'https://chat.whatsapp.com/Gs67DpOSATw27HPzl8uq3u?s=sh&p=a&ilr=1';
+// WhatsApp attend le numéro international sans le préfixe 00.
+const _novateur221SalesPhone = '221782780302';
+const _novateur221SalesPhoneDisplay = '00221782780302';
+
+String _novateur221SalesWhatsAppUrl([String? droneName]) {
+  final subject = droneName == null ? 'un drone DJI' : droneName;
+  final message =
+      'Bonjour Novateur221, je souhaite recevoir des renseignements sur '
+      'l’achat et la disponibilité de $subject via DroneAtlas Academy.';
+  return 'https://wa.me/$_novateur221SalesPhone?text=${Uri.encodeComponent(message)}';
+}
 
 class DroneCatalogScreen extends StatefulWidget {
   const DroneCatalogScreen({
@@ -106,7 +115,7 @@ class _DroneCatalogScreenState extends State<DroneCatalogScreen> {
                   onBudgetChanged: (value) => setState(() => _budget = value),
                   onMappingChanged: (value) =>
                       setState(() => _mappingOnly = value),
-                  onContact: () => _open(_droneAtlasGroupUrl),
+                  onContact: () => _open(_novateur221SalesWhatsAppUrl()),
                 ),
               ),
             ),
@@ -280,7 +289,7 @@ class _DroneCatalogScreenState extends State<DroneCatalogScreen> {
         onOpenOfficial: drone.officialProductUrl == null
             ? null
             : () => _open(drone.officialProductUrl!),
-        onContact: () => _open(_droneAtlasGroupUrl),
+        onContact: () => _open(_novateur221SalesWhatsAppUrl(drone.name)),
       ),
     );
   }
@@ -340,7 +349,7 @@ class _SelectorHero extends StatelessWidget {
                     ),
                     SizedBox(height: 5),
                     Text(
-                      'Choisis ton domaine et ton budget. DroneAtlas compare les capteurs, la précision, la productivité et la logistique.',
+                      'Choisis ton domaine et ton budget. DroneAtlas compare les capteurs, la précision, la productivité et la logistique. Pour acheter, contacte Novateur221 sur WhatsApp.',
                       style: TextStyle(color: Colors.white70, height: 1.42),
                     ),
                   ],
@@ -399,8 +408,8 @@ class _SelectorHero extends StatelessWidget {
           const SizedBox(height: 8),
           FilledButton.icon(
             onPressed: onContact,
-            icon: const Icon(Icons.shopping_bag_rounded),
-            label: const Text('Contacter Novateur221 pour acheter'),
+            icon: const Icon(Icons.chat_rounded),
+            label: Text('Renseignements achat • $_novateur221SalesPhoneDisplay'),
           ),
           const SizedBox(height: 12),
           const Text(
@@ -738,7 +747,7 @@ class _DroneDetails extends StatelessWidget {
                 const SizedBox(height: 7),
                 Text(
                   drone.priceNote.isEmpty
-                      ? 'Prix et disponibilité à confirmer auprès du fabricant ou du fournisseur.'
+                      ? 'Prix et disponibilité à confirmer. Contacte Novateur221 au 00221782780302 via WhatsApp.'
                       : drone.priceNote,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -791,8 +800,8 @@ class _DroneDetails extends StatelessWidget {
           const SizedBox(height: 18),
           FilledButton.icon(
             onPressed: onContact,
-            icon: const Icon(Icons.shopping_bag_rounded),
-            label: const Text('Demander achat / disponibilité à Novateur221'),
+            icon: const Icon(Icons.chat_rounded),
+            label: Text('WhatsApp achat • $_novateur221SalesPhoneDisplay'),
           ),
           if (onOpenOfficial != null) ...[
             const SizedBox(height: 10),
