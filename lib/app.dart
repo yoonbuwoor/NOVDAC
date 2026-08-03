@@ -56,7 +56,16 @@ class _DroneAtlasAppState extends State<DroneAtlasApp> {
             data: mediaQuery.copyWith(
               textScaler: TextScaler.linear(safeScale),
             ),
-            child: child ?? const SizedBox.shrink(),
+            child: ColoredBox(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              child: SafeArea(
+                top: false,
+                left: false,
+                right: false,
+                bottom: true,
+                child: child ?? const SizedBox.shrink(),
+              ),
+            ),
           );
         },
         home: SplashScreen(
