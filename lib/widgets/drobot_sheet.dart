@@ -116,6 +116,8 @@ class _DrobotAssistantSheetState extends State<DrobotAssistantSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final scheme = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
@@ -164,7 +166,25 @@ class _DrobotAssistantSheetState extends State<DrobotAssistantSheet> {
                   itemCount: drobotQuickSuggestions.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (context, index) => ActionChip(
-                    avatar: const Icon(Icons.auto_awesome_rounded, size: 16),
+                    avatar: Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 16,
+                      color: dark ? cyan : const Color(0xFF006B61),
+                    ),
+                    backgroundColor:
+                        dark ? const Color(0xFF13283A) : const Color(0xFFE7F4F7),
+                    disabledColor:
+                        dark ? const Color(0xFF182633) : const Color(0xFFF0F3F5),
+                    surfaceTintColor: Colors.transparent,
+                    side: BorderSide(
+                      color: dark
+                          ? Colors.white.withOpacity(.13)
+                          : const Color(0xFFB8D2D9),
+                    ),
+                    labelStyle: TextStyle(
+                      color: dark ? scheme.onSurface : const Color(0xFF102A43),
+                      fontWeight: FontWeight.w800,
+                    ),
                     label: Text(drobotQuickSuggestions[index]),
                     onPressed: () => _send(drobotQuickSuggestions[index]),
                   ),
@@ -324,6 +344,9 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+
     return Align(
       alignment: message.fromUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -388,6 +411,23 @@ class _MessageBubble extends StatelessWidget {
                     .map(
                       (suggestion) => ActionChip(
                         visualDensity: VisualDensity.compact,
+                        backgroundColor: dark
+                            ? const Color(0xFF152B3D)
+                            : const Color(0xFFE8F3F8),
+                        disabledColor: dark
+                            ? const Color(0xFF182633)
+                            : const Color(0xFFF0F3F5),
+                        surfaceTintColor: Colors.transparent,
+                        side: BorderSide(
+                          color: dark
+                              ? Colors.white.withOpacity(.13)
+                              : const Color(0xFFBCD0DA),
+                        ),
+                        labelStyle: TextStyle(
+                          color: dark ? scheme.onSurface : const Color(0xFF102A43),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                        ),
                         label: Text(suggestion),
                         onPressed: () => onSuggestion(suggestion),
                       ),
