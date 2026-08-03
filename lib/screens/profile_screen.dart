@@ -6,7 +6,8 @@ import '../core/theme.dart';
 import '../data/academy_data.dart';
 import '../widgets/common.dart';
 import 'glossary_screen.dart';
-import 'quiz_screen.dart';
+import 'quiz_hub_screen.dart';
+import 'regulation_screen.dart';
 import 'report_screen.dart';
 import 'update_center_screen.dart';
 
@@ -95,11 +96,11 @@ class ProfileScreen extends StatelessWidget {
                     _ContactCard(
                       icon: Icons.chat_rounded,
                       color: success,
-                      title: 'WhatsApp Novateur221',
-                      subtitle: '+221 78 278 03 02',
+                      title: 'Groupe WhatsApp DroneAtlas',
+                      subtitle: 'Rejoindre la communauté d’apprentissage',
                       onTap: () => _openExternalLink(
                         context,
-                        'https://wa.me/221782780302?text=Bonjour%20Novateur221%2C%20je%20vous%20contacte%20depuis%20DroneAtlas.',
+                        'https://chat.whatsapp.com/Gs67DpOSATw27HPzl8uq3u?s=sh&p=a&ilr=1',
                       ),
                     ),
                     _ContactCard(
@@ -157,9 +158,10 @@ class ProfileScreen extends StatelessWidget {
                     crossAxisSpacing: 12,
                     childAspectRatio: columns == 1 ? 3.1 : 1.42,
                     children: [
-                      _ToolCard(icon: Icons.quiz_rounded, color: orange, title: 'Quiz général', subtitle: 'Teste les notions essentielles.', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizScreen()))),
+                      _ToolCard(icon: Icons.quiz_rounded, color: orange, title: 'Quiz & défis', subtitle: 'Six thèmes et 54 questions.', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizHubScreen()))),
                       _ToolCard(icon: Icons.menu_book_rounded, color: cyan, title: 'Glossaire', subtitle: 'Retrouve rapidement les termes.', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GlossaryScreen()))),
                       _ToolCard(icon: Icons.description_rounded, color: violet, title: 'Atelier de rapport', subtitle: 'Construis une restitution complète.', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportScreen()))),
+                      _ToolCard(icon: Icons.gavel_rounded, color: danger, title: 'Règles ANACIM', subtitle: 'Annexe 5 et alertes de simulation.', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegulationScreen()))),
                       _ToolCard(icon: controller.updateAvailable ? Icons.new_releases_rounded : Icons.system_update_alt_rounded, color: controller.updateAvailable ? orange : success, title: controller.updateAvailable ? 'Nouveaux cours' : 'Mises à jour', subtitle: controller.updateAvailable ? 'Une mise à jour pédagogique est prête.' : 'Application à jour.', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UpdateCenterScreen()))),
                     ],
                   );

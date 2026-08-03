@@ -4,7 +4,10 @@ import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 
 import '../config/drobot_config.dart';
+import '../data/anacim_rules.dart';
+import '../data/drone_catalog_data.dart';
 import '../data/drobot_knowledge.dart';
+import '../models/drone_catalog_models.dart';
 import '../models/drobot_models.dart';
 
 class DrobotService {
@@ -50,6 +53,12 @@ class DrobotService {
 
     final missionPlan = _tryMissionPlanner(normalized, question);
     if (missionPlan != null) return missionPlan;
+
+    final droneRecommendation = _tryDroneRecommendation(normalized);
+    if (droneRecommendation != null) return droneRecommendation;
+
+    final regulation = _tryAnacimGuidance(normalized, question);
+    if (regulation != null) return regulation;
 
     final calculator = _tryCalculator(normalized, question);
     if (calculator != null) return calculator;
@@ -307,11 +316,18 @@ class DrobotService {
     final operationalBatteries = math.max(1, (flightMinutes / usableMinutesPerBattery).ceil());
     final storageGb = estimatedPhotos * 8 / 1024;
     final gsdCm = altitude * sensorWidthMm * 100 / (focalMm * imageWidthPx);
+    final regulatoryNote = altitude > anacimMaxAltitudeMeters
+        ? '⛔ ALERTE ANACIM : ${_fmt(altitude)} m dépasse 300 ft AGL (≈ 91,4 m). Ce scénario est NO-GO sans permission de l’Autorité et accord applicable des services de navigation aérienne.'
+        : altitude >= 80
+            ? '⚠️ PRUDENCE ANACIM : altitude proche de 300 ft AGL. Contrôle le relief et la hauteur réelle au-dessus du sol.'
+            : '✅ Repère ANACIM : l’altitude saisie reste sous 300 ft AGL, sous réserve des autres règles et autorisations.';
 
     final buffer = StringBuffer()
       ..writeln('**Plan opérationnel estimatif — ${_fmt(hectares)} ha**')
       ..writeln()
       ..writeln('Hypothèses utilisées : altitude ${_fmt(altitude)} m, recouvrements ${_fmt(frontOverlap, 0)}/${_fmt(sideOverlap, 0)} %, vitesse ${_fmt(flightSpeed)} m/s, capteur ${_fmt(sensorWidthMm)} × ${_fmt(sensorHeightMm)} mm, focale ${_fmt(focalMm)} mm.')
+      ..writeln()
+      ..writeln(regulatoryNote)
       ..writeln()
       ..writeln('Résultats géométriques :')
       ..writeln('• GSD théorique : ${_fmt(gsdCm, 2)} cm/pixel')
@@ -344,6 +360,112 @@ class DrobotService {
         'Adapte ce plan à une parcelle longue et étroite',
         'Ajoute une stratégie GCP et checkpoints',
         'Fais la checklist terrain de cette mission',
+      ],
+    );
+  }
+
+  DrobotReply? _tryDroneRecommendation(String normalized) {
+    final intent = _containsAny(normalized, <String>[
+      'quel drone',
+      'choisir drone',
+      'drone pour',
+      'recommande drone',
+      'meilleur drone',
+      'dji pour',
+      'liste drone dji',
+      'types de drones',
+      'marques de drones',
+    ]);
+    if (!intent) return null;
+
+    final need = _containsAny(normalized, <String>['multispectral', 'agriculture', 'ndvi', 'culture'])
+        ? DroneNeed.agriculture
+        : _containsAny(normalized, <String>['lidar', 'foret', 'forêt', 'canopée', 'relief complexe'])
+            ? DroneNeed.lidar
+            : _containsAny(normalized, <String>['thermique', 'inspection', 'solaire', 'toiture'])
+                ? DroneNeed.thermalInspection
+                : _containsAny(normalized, <String>['grande surface', 'plus de 500', '> 500', 'corridor'])
+                    ? DroneNeed.largeMapping
+                    : _containsAny(normalized, <String>['100 500', '100-500', 'moyenne surface'])
+                        ? DroneNeed.mediumMapping
+                        : _containsAny(normalized, <String>['budget', 'debut', 'début', 'apprendre', 'formation'])
+                            ? DroneNeed.budgetLearning
+                            : DroneNeed.smallMapping;
+
+    final ranked = djiDroneCatalog.toList()
+      ..sort(
+        (a, b) => (b.needScores[need] ?? 0).compareTo(a.needScores[need] ?? 0),
+      );
+    final best = ranked.take(4).toList();
+    final buffer = StringBuffer()
+      ..writeln('**Suggestions DJI — ${need.label}**')
+      ..writeln()
+      ..writeln('Drobot compare l’usage, le capteur, le positionnement, la productivité et la logistique :');
+    for (var index = 0; index < best.length; index++) {
+      final drone = best[index];
+      buffer
+        ..writeln()
+        ..writeln('${index + 1}. **${drone.name}** — ${drone.needScores[need] ?? 0} %')
+        ..writeln('   ${drone.bestFor}')
+        ..writeln('   Capteur : ${drone.sensor}');
+    }
+    buffer
+      ..writeln()
+      ..writeln('Ouvre l’onglet **Drones** pour comparer les ${djiDroneCatalog.length} configurations, leurs limites et les recommandations par besoin.')
+      ..writeln()
+      ..writeln('⚠️ Vérifie toujours la disponibilité, la documentation du fabricant, les autorisations et la compatibilité des charges utiles avant achat ou mission.');
+
+    return DrobotReply(
+      text: buffer.toString().trim(),
+      source: 'Conseiller matériel Drobot',
+      suggestions: const <String>[
+        'Compare Matrice 4E et Mavic 3E',
+        'Quel drone pour le LiDAR ?',
+        'Quel drone pour le multispectral ?',
+      ],
+    );
+  }
+
+  DrobotReply? _tryAnacimGuidance(String normalized, String original) {
+    final intent = _containsAny(normalized, <String>[
+      'anacim',
+      'annexe 5',
+      'ras 06',
+      'reglement drone',
+      'réglementation drone',
+      'limite altitude',
+      '300 pieds',
+      'vol de nuit',
+      'proche aerodrome',
+      'proche aérodrome',
+      'espace controle',
+      'espace contrôlé',
+    ]);
+    if (!intent) return null;
+
+    final altitude = _labeledNumber(original, <String>['altitude', 'hauteur']);
+    final altitudeMessage = altitude == null
+        ? '• Altitude générale : ne pas dépasser 300 ft AGL, soit environ 91,4 m, sans permission applicable.'
+        : altitude > anacimMaxAltitudeMeters
+            ? '⛔ Altitude ${_fmt(altitude)} m : dépassement de 300 ft AGL. Le simulateur doit afficher un NO-GO sans permission applicable.'
+            : '✅ Altitude ${_fmt(altitude)} m : sous 300 ft AGL, mais les autres règles restent à vérifier.';
+
+    return DrobotReply(
+      text: '**Repères ANACIM intégrés**
+
+$altitudeMessage
+• Les opérations de nuit nécessitent une autorisation spéciale.
+• Le BVLOS exige notamment une étude de sécurité acceptée.
+• Un espace aérien contrôlé demande une autorisation ATS.
+• Le voisinage des aérodromes comporte des rayons de protection selon la longueur de piste.
+• Le survol d’une zone urbaine ou encombrée nécessite une autorisation spéciale.
+
+Le module Réglementation présente le résumé pédagogique de l’Annexe 5. Pour une mission réelle, consulte la version officielle à jour et les autorisations applicables.',
+      source: 'Annexe 5 au RAS 06 • résumé pédagogique',
+      suggestions: const <String>[
+        'Explique la limite des 300 pieds',
+        'Quelles règles près d’un aérodrome ?',
+        'Que faut-il pour un vol BVLOS ?',
       ],
     );
   }

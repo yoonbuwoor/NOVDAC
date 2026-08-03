@@ -110,9 +110,9 @@ class BrandBar extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
-            padding: const EdgeInsets.all(7),
+            width: compact ? 60 : 78,
+            height: 52,
+            padding: const EdgeInsets.all(5),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(17),
@@ -125,7 +125,7 @@ class BrandBar extends StatelessWidget {
                 ),
               ],
             ),
-            child: Image.asset('assets/images/logo.webp'),
+            child: Image.asset('assets/images/logo_full.webp', fit: BoxFit.contain),
           ),
           const SizedBox(width: 13),
           Expanded(
@@ -150,7 +150,7 @@ class BrandBar extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  subtitle ?? 'Salut ${controller.learnerName} • ${controller.xp} XP • Série ${controller.streak} j',
+                  subtitle ?? 'Par Novateur221 • ${controller.learnerName} • ${controller.xp} XP',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

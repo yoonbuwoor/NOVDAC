@@ -36,7 +36,7 @@ class AppController extends ChangeNotifier {
   String selectedDomain = 'Cartographie & SIG';
 
   double altitude = 90;
-  double areaHectares = 24;
+  double areaHectares = 50;
   double frontOverlap = 80;
   double sideOverlap = 70;
   double speed = 7;

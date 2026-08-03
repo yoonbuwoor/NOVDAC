@@ -9,9 +9,9 @@ APP = ANDROID / "app"
 manifest = APP / "src" / "main" / "AndroidManifest.xml"
 if manifest.exists():
     text = manifest.read_text(encoding="utf-8")
-    text = text.replace('android:label="droneatlas"', 'android:label="DroneAtlas"')
-    text = text.replace('android:label="Droneatlas"', 'android:label="DroneAtlas"')
-    text = text.replace('android:label="DroneAtlas"', 'android:label="DroneAtlas"')
+    text = text.replace('android:label="droneatlas"', 'android:label="DroneAtlas Academy"')
+    text = text.replace('android:label="Droneatlas"', 'android:label="DroneAtlas Academy"')
+    text = text.replace('android:label="DroneAtlas"', 'android:label="DroneAtlas Academy"')
     permissions = [
         'android.permission.INTERNET',
         'android.permission.POST_NOTIFICATIONS',

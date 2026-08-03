@@ -60,12 +60,12 @@ class _SplashScreenState extends State<SplashScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            width: 92,
-                            height: 92,
-                            padding: const EdgeInsets.all(13),
+                            width: 240,
+                            height: 190,
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(28),
+                              borderRadius: BorderRadius.circular(34),
                               boxShadow: [
                                 BoxShadow(
                                   color: cyan.withOpacity(.25),
@@ -75,21 +75,11 @@ class _SplashScreenState extends State<SplashScreen>
                               ],
                             ),
                             child: Image.asset(
-                              'assets/images/logo.webp',
+                              'assets/images/logo_full.webp',
                               fit: BoxFit.contain,
                             ),
                           ),
-                          const SizedBox(height: 20),
-                          const Text(
-                            'DRONEATLAS',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 27,
-                              letterSpacing: 2.6,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          const SizedBox(height: 7),
+                          const SizedBox(height: 14),
                           const Text(
                             'DRONE • PHOTOGRAMMÉTRIE • SIG • IA',
                             style: TextStyle(
@@ -119,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                         SizedBox(height: 13),
                         Text(
-                          'Une initiative Novateur221',
+                          'DroneAtlas Academy • Novateur221',
                           style: TextStyle(color: Colors.white54, fontSize: 12),
                         ),
                       ],

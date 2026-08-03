@@ -43,7 +43,7 @@ class _DroneAtlasAppState extends State<DroneAtlasApp> {
       controller: _controller,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'DroneAtlas • Drobot',
+        title: 'DroneAtlas Academy • Novateur221',
         themeMode: _themeMode,
         theme: buildDroneTheme(Brightness.light),
         darkTheme: buildDroneTheme(Brightness.dark),

@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 
 import '../controllers/app_controller.dart';
 import '../core/theme.dart';
+import '../data/anacim_rules.dart';
 import '../widgets/common.dart';
 import '../widgets/learning_visuals.dart';
+import 'regulation_screen.dart';
 
 class SimulatorScreen extends StatefulWidget {
   const SimulatorScreen({
@@ -26,53 +28,79 @@ enum _SimulatorMode { plan, camera, fragments, pipeline }
 
 class _SimulatorScreenState extends State<SimulatorScreen> {
   _SimulatorMode _mode = _SimulatorMode.plan;
+  bool _dayOperation = true;
+  bool _vlos = true;
+  bool _nearAerodrome = false;
+  bool _controlledAirspace = false;
+  bool _congestedArea = false;
+  bool _hasAuthorization = false;
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: MaxWidthBox(
-            child: BrandBar(
-              isDark: widget.isDark,
-              onToggleTheme: widget.onToggleTheme,
-              title: 'Laboratoire',
-              subtitle: 'Teste les paramètres sans risquer une vraie mission',
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: MaxWidthBox(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 18),
-              child: _ModeSelector(
-                selected: _mode,
-                onSelected: (mode) => setState(() => _mode = mode),
+    // Le laboratoire conserve une typographie stable même si une très grande
+    // taille de police est activée dans Android. Les autres écrans gardent les
+    // réglages d’accessibilité du téléphone.
+    final mediaQuery = MediaQuery.of(context);
+    return MediaQuery(
+      data: mediaQuery.copyWith(textScaler: TextScaler.noScaling),
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: MaxWidthBox(
+              child: BrandBar(
+                isDark: widget.isDark,
+                onToggleTheme: widget.onToggleTheme,
+                title: 'Simulateur de vol',
+                subtitle: 'Planifie, vérifie les règles et teste sans risquer une mission réelle',
               ),
             ),
           ),
-        ),
-        SliverToBoxAdapter(
-          child: MaxWidthBox(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: switch (_mode) {
-                  _SimulatorMode.plan => const _PlanLab(key: ValueKey('plan')),
-                  _SimulatorMode.camera => const _CameraLab(key: ValueKey('camera')),
-                  _SimulatorMode.fragments => const _FragmentLab(key: ValueKey('fragments')),
-                  _SimulatorMode.pipeline => const _PipelineLab(key: ValueKey('pipeline')),
-                },
+          SliverToBoxAdapter(
+            child: MaxWidthBox(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 18),
+                child: _ModeSelector(
+                  selected: _mode,
+                  onSelected: (mode) => setState(() => _mode = mode),
+                ),
               ),
             ),
           ),
-        ),
-      ],
+          SliverToBoxAdapter(
+            child: MaxWidthBox(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: switch (_mode) {
+                    _SimulatorMode.plan => _PlanLab(
+                        key: const ValueKey('plan'),
+                        dayOperation: _dayOperation,
+                        vlos: _vlos,
+                        nearAerodrome: _nearAerodrome,
+                        controlledAirspace: _controlledAirspace,
+                        congestedArea: _congestedArea,
+                        hasAuthorization: _hasAuthorization,
+                        onDayOperationChanged: (value) => setState(() => _dayOperation = value),
+                        onVlosChanged: (value) => setState(() => _vlos = value),
+                        onNearAerodromeChanged: (value) => setState(() => _nearAerodrome = value),
+                        onControlledAirspaceChanged: (value) => setState(() => _controlledAirspace = value),
+                        onCongestedAreaChanged: (value) => setState(() => _congestedArea = value),
+                        onAuthorizationChanged: (value) => setState(() => _hasAuthorization = value),
+                      ),
+                    _SimulatorMode.camera => const _CameraLab(key: ValueKey('camera')),
+                    _SimulatorMode.fragments => const _FragmentLab(key: ValueKey('fragments')),
+                    _SimulatorMode.pipeline => const _PipelineLab(key: ValueKey('pipeline')),
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
-
 
 class _ModeSelector extends StatelessWidget {
   const _ModeSelector({
@@ -167,7 +195,34 @@ class _ModeSelector extends StatelessWidget {
 }
 
 class _PlanLab extends StatelessWidget {
-  const _PlanLab({super.key});
+  const _PlanLab({
+    super.key,
+    required this.dayOperation,
+    required this.vlos,
+    required this.nearAerodrome,
+    required this.controlledAirspace,
+    required this.congestedArea,
+    required this.hasAuthorization,
+    required this.onDayOperationChanged,
+    required this.onVlosChanged,
+    required this.onNearAerodromeChanged,
+    required this.onControlledAirspaceChanged,
+    required this.onCongestedAreaChanged,
+    required this.onAuthorizationChanged,
+  });
+
+  final bool dayOperation;
+  final bool vlos;
+  final bool nearAerodrome;
+  final bool controlledAirspace;
+  final bool congestedArea;
+  final bool hasAuthorization;
+  final ValueChanged<bool> onDayOperationChanged;
+  final ValueChanged<bool> onVlosChanged;
+  final ValueChanged<bool> onNearAerodromeChanged;
+  final ValueChanged<bool> onControlledAirspaceChanged;
+  final ValueChanged<bool> onCongestedAreaChanged;
+  final ValueChanged<bool> onAuthorizationChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -182,6 +237,18 @@ class _PlanLab extends StatelessWidget {
     final duration = flightLength / controller.speed / 60;
     final batteries = math.max(1, (duration / 17).ceil());
     final quality = _planQuality(controller.frontOverlap, controller.sideOverlap, controller.altitude, controller.speed);
+    final compliance = assessAnacimSimulation(
+      AnacimSimulationInput(
+        altitudeMeters: controller.altitude,
+        speedMetersPerSecond: controller.speed,
+        dayOperation: dayOperation,
+        vlos: vlos,
+        nearAerodrome: nearAerodrome,
+        controlledAirspace: controlledAirspace,
+        congestedArea: congestedArea,
+        hasAuthorization: hasAuthorization,
+      ),
+    );
 
     return Column(
       key: const ValueKey('plan-content'),
@@ -204,9 +271,31 @@ class _PlanLab extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 _PlanAdvice(quality: quality, controller: controller),
+                const SizedBox(height: 12),
+                _AnacimComplianceCard(
+                  result: compliance,
+                  onOpenRules: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RegulationScreen()),
+                  ),
+                ),
               ],
             );
-            final controls = _PlannerControls(controller: controller);
+            final controls = _PlannerControls(
+              controller: controller,
+              dayOperation: dayOperation,
+              vlos: vlos,
+              nearAerodrome: nearAerodrome,
+              controlledAirspace: controlledAirspace,
+              congestedArea: congestedArea,
+              hasAuthorization: hasAuthorization,
+              onDayOperationChanged: onDayOperationChanged,
+              onVlosChanged: onVlosChanged,
+              onNearAerodromeChanged: onNearAerodromeChanged,
+              onControlledAirspaceChanged: onControlledAirspaceChanged,
+              onCongestedAreaChanged: onCongestedAreaChanged,
+              onAuthorizationChanged: onAuthorizationChanged,
+            );
             if (wide) {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,7 +353,8 @@ class _PlanLab extends StatelessWidget {
     var score = 100;
     if (front < 70) score -= 28;
     if (side < 60) score -= 28;
-    if (altitude > 130) score -= 12;
+    if (altitude > anacimMaxAltitudeMeters) score -= 35;
+    else if (altitude >= 80) score -= 5;
     if (altitude < 45) score -= 8;
     if (speed > 10) score -= 15;
     if (front > 88 || side > 82) score -= 5;
@@ -273,9 +363,35 @@ class _PlanLab extends StatelessWidget {
 }
 
 class _PlannerControls extends StatelessWidget {
-  const _PlannerControls({required this.controller});
+  const _PlannerControls({
+    required this.controller,
+    required this.dayOperation,
+    required this.vlos,
+    required this.nearAerodrome,
+    required this.controlledAirspace,
+    required this.congestedArea,
+    required this.hasAuthorization,
+    required this.onDayOperationChanged,
+    required this.onVlosChanged,
+    required this.onNearAerodromeChanged,
+    required this.onControlledAirspaceChanged,
+    required this.onCongestedAreaChanged,
+    required this.onAuthorizationChanged,
+  });
 
   final AppController controller;
+  final bool dayOperation;
+  final bool vlos;
+  final bool nearAerodrome;
+  final bool controlledAirspace;
+  final bool congestedArea;
+  final bool hasAuthorization;
+  final ValueChanged<bool> onDayOperationChanged;
+  final ValueChanged<bool> onVlosChanged;
+  final ValueChanged<bool> onNearAerodromeChanged;
+  final ValueChanged<bool> onControlledAirspaceChanged;
+  final ValueChanged<bool> onCongestedAreaChanged;
+  final ValueChanged<bool> onAuthorizationChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -338,9 +454,91 @@ class _PlannerControls extends StatelessWidget {
               unit: 'm/s',
               onChanged: (value) => controller.updatePlanner(newSpeed: value),
             ),
+            const Divider(height: 30),
+            const Text(
+              'Scénario réglementaire',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Ces options déclenchent les contrôles pédagogiques de l’Annexe 5 au RAS 06.',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 11.5,
+                height: 1.35,
+              ),
+            ),
+            const SizedBox(height: 10),
+            _ScenarioSwitch(
+              icon: Icons.light_mode_rounded,
+              title: 'Opération de jour',
+              value: dayOperation,
+              onChanged: onDayOperationChanged,
+            ),
+            _ScenarioSwitch(
+              icon: Icons.visibility_rounded,
+              title: 'Vol en visibilité directe (VLOS)',
+              value: vlos,
+              onChanged: onVlosChanged,
+            ),
+            _ScenarioSwitch(
+              icon: Icons.flight_land_rounded,
+              title: 'Proche d’un aérodrome',
+              value: nearAerodrome,
+              onChanged: onNearAerodromeChanged,
+            ),
+            _ScenarioSwitch(
+              icon: Icons.radar_rounded,
+              title: 'Espace aérien contrôlé',
+              value: controlledAirspace,
+              onChanged: onControlledAirspaceChanged,
+            ),
+            _ScenarioSwitch(
+              icon: Icons.location_city_rounded,
+              title: 'Zone urbaine / encombrée',
+              value: congestedArea,
+              onChanged: onCongestedAreaChanged,
+            ),
+            _ScenarioSwitch(
+              icon: Icons.verified_user_rounded,
+              title: 'Autorisation applicable confirmée',
+              value: hasAuthorization,
+              onChanged: onAuthorizationChanged,
+              positive: true,
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ScenarioSwitch extends StatelessWidget {
+  const _ScenarioSwitch({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.onChanged,
+    this.positive = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final bool positive;
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = positive ? success : orange;
+    return SwitchListTile.adaptive(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      value: value,
+      activeColor: activeColor,
+      onChanged: onChanged,
+      secondary: Icon(icon, color: value ? activeColor : Theme.of(context).colorScheme.onSurfaceVariant, size: 21),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
     );
   }
 }
@@ -401,7 +599,8 @@ class _PlanAdvice extends StatelessWidget {
     if (controller.frontOverlap < 70) issues.add('Augmente le recouvrement longitudinal.');
     if (controller.sideOverlap < 60) issues.add('Les bandes risquent de ne pas assez se rejoindre.');
     if (controller.speed > 10) issues.add('La vitesse peut augmenter le flou et espacer les déclenchements.');
-    if (controller.altitude > 130) issues.add('Le niveau de détail devient faible pour certains usages.');
+    if (controller.altitude > anacimMaxAltitudeMeters) issues.insert(0, 'Altitude supérieure à 300 ft AGL : NO-GO sans permission applicable.');
+    else if (controller.altitude >= 80) issues.add('Altitude proche de la limite générale : surveille le relief et la hauteur AGL.');
     if (controller.frontOverlap > 88 || controller.sideOverlap > 82) issues.add('Le nombre d’images augmente fortement sans toujours apporter un gain utile.');
     if (issues.isEmpty) issues.add('Les paramètres forment un bon équilibre pour une zone plane et texturée.');
     return Container(
@@ -421,6 +620,78 @@ class _PlanAdvice extends StatelessWidget {
                 const SizedBox(height: 5),
                 Text(issues.first, style: const TextStyle(height: 1.4)),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnacimComplianceCard extends StatelessWidget {
+  const _AnacimComplianceCard({required this.result, required this.onOpenRules});
+
+  final AnacimComplianceResult result;
+  final VoidCallback onOpenRules;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (result.level) {
+      AnacimComplianceLevel.compliant => success,
+      AnacimComplianceLevel.caution => orange,
+      AnacimComplianceLevel.blocked => danger,
+    };
+    final icon = switch (result.level) {
+      AnacimComplianceLevel.compliant => Icons.check_circle_rounded,
+      AnacimComplianceLevel.caution => Icons.warning_amber_rounded,
+      AnacimComplianceLevel.blocked => Icons.block_rounded,
+    };
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(17),
+      decoration: BoxDecoration(
+        color: color.withOpacity(.10),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(.30)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 26),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  result.title,
+                  style: TextStyle(color: color, fontSize: 16, fontWeight: FontWeight.w900),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          for (final message in result.messages.take(4))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 7),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: CircleAvatar(radius: 3, backgroundColor: color),
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(child: Text(message, style: const TextStyle(height: 1.38, fontSize: 12))),
+                ],
+              ),
+            ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: onOpenRules,
+              icon: const Icon(Icons.menu_book_rounded, size: 18),
+              label: const Text('Voir l’Annexe 5 résumée'),
             ),
           ),
         ],

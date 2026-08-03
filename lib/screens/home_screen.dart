@@ -12,7 +12,8 @@ import 'course_detail_screen.dart';
 import 'domain_detail_screen.dart';
 import 'glossary_screen.dart';
 import 'mission_player_screen.dart';
-import 'quiz_screen.dart';
+import 'quiz_hub_screen.dart';
+import 'regulation_screen.dart';
 import 'report_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -93,11 +94,11 @@ class HomeScreen extends StatelessWidget {
                           delta: 'NIV ${math.max(1, controller.xp ~/ 500 + 1)}',
                         ),
                         MetricCard(
-                          value: '${controller.streak} jour${controller.streak > 1 ? 's' : ''}',
-                          label: 'Série d’apprentissage',
-                          icon: Icons.local_fire_department_rounded,
+                          value: '6',
+                          label: 'Quiz thématiques',
+                          icon: Icons.quiz_rounded,
                           accent: danger,
-                          delta: 'ACTIF',
+                          delta: '54 QUESTIONS',
                         ),
                         MetricCard(
                           value: '${controller.completedMissions.length}/${missions.length}',
@@ -182,7 +183,7 @@ class HomeScreen extends StatelessWidget {
                 child: const SectionHeading(
                   eyebrow: 'RACCOURCIS',
                   title: 'Passe directement à l’action',
-                  subtitle: 'Quatre portes d’entrée selon ton objectif du moment.',
+                  subtitle: 'Simule, révise, vérifie les règles et progresse.',
                 ),
               ),
             ),
@@ -233,12 +234,29 @@ class HomeScreen extends StatelessWidget {
                         _QuickAction(
                           icon: Icons.quiz_rounded,
                           color: orange,
-                          title: 'Défi express',
-                          subtitle: 'Teste tes connaissances',
+                          title: 'Quiz & défis',
+                          subtitle: 'Six parcours avec corrections',
                           onTap: () => Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const QuizScreen()),
+                            MaterialPageRoute(builder: (_) => const QuizHubScreen()),
                           ),
+                        ),
+                        _QuickAction(
+                          icon: Icons.gavel_rounded,
+                          color: danger,
+                          title: 'Règles ANACIM',
+                          subtitle: 'Annexe 5 et limites de vol',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const RegulationScreen()),
+                          ),
+                        ),
+                        _QuickAction(
+                          icon: Icons.school_rounded,
+                          color: success,
+                          title: 'Académie',
+                          subtitle: 'Cours riches et parcours guidés',
+                          onTap: onOpenAcademy,
                         ),
                       ],
                     );
