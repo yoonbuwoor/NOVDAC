@@ -9,9 +9,9 @@ APP = ANDROID / "app"
 manifest = APP / "src" / "main" / "AndroidManifest.xml"
 if manifest.exists():
     text = manifest.read_text(encoding="utf-8")
-    text = text.replace('android:label="droneatlas"', 'android:label="DroneAtlas Academy"')
-    text = text.replace('android:label="Droneatlas"', 'android:label="DroneAtlas Academy"')
-    text = text.replace('android:label="DroneAtlas"', 'android:label="DroneAtlas Academy"')
+    text = text.replace('android:label="droneatlas"', 'android:label="DroneAtlas"')
+    text = text.replace('android:label="Droneatlas"', 'android:label="DroneAtlas"')
+    text = text.replace('android:label="DroneAtlas"', 'android:label="DroneAtlas"')
     permissions = [
         'android.permission.INTERNET',
         'android.permission.POST_NOTIFICATIONS',
@@ -113,4 +113,43 @@ if wrapper.exists():
     )
     wrapper.write_text(text, encoding="utf-8")
 
-print("Configuration Android DroneAtlas (notifications, localisation et mises à jour) appliquée.")
+
+# Les pages d'examen et l'aperçu filigrané activent FLAG_SECURE via MethodChannel.
+main_activity = APP / "src" / "main" / "kotlin" / "com" / "novateur221" / "droneatlas" / "MainActivity.kt"
+main_activity.parent.mkdir(parents=True, exist_ok=True)
+main_activity.write_text(
+    """package com.novateur221.droneatlas
+
+import android.view.WindowManager
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
+
+class MainActivity : FlutterActivity() {
+    private val securityChannel = \"droneatlas/security\"
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            securityChannel,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                \"enableSecure\" -> {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                    result.success(null)
+                }
+                \"disableSecure\" -> {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
+}
+""",
+    encoding="utf-8",
+)
+
+print("Configuration Android DroneAtlas (notifications, localisation, sécurité des examens et mises à jour) appliquée.")
