@@ -17,13 +17,15 @@ function b2Client() {
   if (!endpoint || !region || !accessKeyId || !secretAccessKey) {
     throw new Error('Configuration Backblaze B2 incomplète.');
   }
-  client = new S3Client({
-    endpoint,
-    region,
-    credentials: { accessKeyId, secretAccessKey },
-  });
-  return client;
-}
+client = new S3Client({
+  endpoint: endpoint.replace(/\/+$/, ''),
+  region,
+  forcePathStyle: true,
+  credentials: {
+    accessKeyId,
+    secretAccessKey,
+  },
+
 
 function bucket() {
   const value = process.env.B2_BUCKET;
