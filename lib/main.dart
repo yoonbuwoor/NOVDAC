@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'app.dart';
 import 'services/background_update_service.dart';
 import 'services/notification_service.dart';
+import 'services/certification_auth_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +15,7 @@ Future<void> main() async {
   debugPaintTextLayoutBoxes = false;
 
   try {
+    await CertificationAuthService.initializeIfConfigured();
     await NotificationService.instance.initialize();
     await BackgroundUpdateService.initialize();
   } catch (_) {
