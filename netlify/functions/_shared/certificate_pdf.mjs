@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
 import QRCode from 'qrcode';
 
@@ -40,7 +41,30 @@ export async function generateCertificatePdf({
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const italic = await pdf.embedFont(StandardFonts.HelveticaOblique);
-  const logoBytes = await readFile(new URL('../assets/logo.png', import.meta.url));
+  const roots = [process.env.LAMBDA_TASK_ROOT, process.cwd()].filter(Boolean);
+  const candidates = roots.flatMap((root) => [
+    resolve(root, 'netlify/functions/assets/logo.png'),
+    resolve(root, 'assets/logo.png'),
+  ]);
+
+  let logoBytes;
+  let lastError;
+  for (const candidate of candidates) {
+    try {
+      logoBytes = await readFile(candidate);
+      break;
+    } catch (error) {
+      lastError = error;
+      if (error?.code !== 'ENOENT') throw error;
+    }
+  }
+
+  if (!logoBytes) {
+    throw new Error(
+      `Logo du certificat introuvable dans le bundle Netlify : ${lastError?.message || 'chemin inconnu'}`,
+    );
+  }
+
   const logo = await pdf.embedPng(logoBytes);
 
   const burgundy = rgb(0.49, 0.05, 0.20);
