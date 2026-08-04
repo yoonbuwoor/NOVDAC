@@ -6,10 +6,10 @@ import '../core/theme.dart';
 import '../data/academy_data.dart';
 import '../widgets/common.dart';
 import 'glossary_screen.dart';
-import 'quiz_hub_screen.dart';
-import 'regulation_screen.dart';
+import 'quiz_screen.dart';
 import 'report_screen.dart';
 import 'update_center_screen.dart';
+import 'certification_hub_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -76,6 +76,57 @@ class ProfileScreen extends StatelessWidget {
         SliverToBoxAdapter(
           child: MaxWidthBox(
             child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 26, 20, 4),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(26),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const CertificationHubScreen(),
+                  ),
+                ),
+                child: Ink(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF7E173A), Color(0xFFFF6B38)],
+                    ),
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 38),
+                      SizedBox(width: 15),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Parcours certifiants',
+                              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Crée un compte uniquement si tu souhaites passer les examens et générer un certificat.',
+                              style: TextStyle(color: Colors.white, height: 1.35, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward_rounded, color: Colors.white),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: MaxWidthBox(
+            child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
               child: const SectionHeading(
                 eyebrow: 'NOVATEUR221',
@@ -96,11 +147,11 @@ class ProfileScreen extends StatelessWidget {
                     _ContactCard(
                       icon: Icons.chat_rounded,
                       color: success,
-                      title: 'Groupe WhatsApp DroneAtlas',
-                      subtitle: 'Rejoindre la communauté d’apprentissage',
+                      title: 'WhatsApp Novateur221',
+                      subtitle: '+221 78 278 03 02',
                       onTap: () => _openExternalLink(
                         context,
-                        'https://chat.whatsapp.com/Gs67DpOSATw27HPzl8uq3u?s=sh&p=a&ilr=1',
+                        'https://wa.me/221782780302?text=Bonjour%20Novateur221%2C%20je%20vous%20contacte%20depuis%20DroneAtlas.',
                       ),
                     ),
                     _ContactCard(
@@ -158,10 +209,9 @@ class ProfileScreen extends StatelessWidget {
                     crossAxisSpacing: 12,
                     childAspectRatio: columns == 1 ? 3.1 : 1.42,
                     children: [
-                      _ToolCard(icon: Icons.quiz_rounded, color: orange, title: 'Quiz & défis', subtitle: 'Six thèmes et 54 questions.', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizHubScreen()))),
+                      _ToolCard(icon: Icons.quiz_rounded, color: orange, title: 'Quiz général', subtitle: 'Teste les notions essentielles.', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizScreen()))),
                       _ToolCard(icon: Icons.menu_book_rounded, color: cyan, title: 'Glossaire', subtitle: 'Retrouve rapidement les termes.', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GlossaryScreen()))),
                       _ToolCard(icon: Icons.description_rounded, color: violet, title: 'Atelier de rapport', subtitle: 'Construis une restitution complète.', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportScreen()))),
-                      _ToolCard(icon: Icons.gavel_rounded, color: danger, title: 'Règles ANACIM', subtitle: 'Annexe 5 et alertes de simulation.', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegulationScreen()))),
                       _ToolCard(icon: controller.updateAvailable ? Icons.new_releases_rounded : Icons.system_update_alt_rounded, color: controller.updateAvailable ? orange : success, title: controller.updateAvailable ? 'Nouveaux cours' : 'Mises à jour', subtitle: controller.updateAvailable ? 'Une mise à jour pédagogique est prête.' : 'Application à jour.', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UpdateCenterScreen()))),
                     ],
                   );
