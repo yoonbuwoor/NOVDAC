@@ -84,32 +84,128 @@ jobs:
           path: flutter-analyze.log
 
       - name: Compiler l’APK Release
+        shell: bash
+        env:
+          DROBOT_API_URL_RAW: ${{ secrets.DROBOT_API_URL }}
+          FIREBASE_API_KEY_RAW: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID_RAW: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MESSAGING_SENDER_ID_RAW: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_PROJECT_ID_RAW: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_AUTH_DOMAIN_RAW: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          CERTIFICATION_API_URL_RAW: ${{ secrets.CERTIFICATION_API_URL }}
         run: |
-          flutter build apk --release \
-            --dart-define=EMAILJS_SERVICE_ID=service_726u54k \
-            --dart-define=EMAILJS_TEMPLATE_ID=template_9y2rmzx \
-            --dart-define=EMAILJS_PUBLIC_KEY=fxWkKI41fWVZAmts5 \
-            --dart-define=DROBOT_API_URL="${{ secrets.DROBOT_API_URL }}" \
-            --dart-define=FIREBASE_API_KEY="${{ secrets.FIREBASE_API_KEY }}" \
-            --dart-define=FIREBASE_APP_ID="${{ secrets.FIREBASE_APP_ID }}" \
-            --dart-define=FIREBASE_MESSAGING_SENDER_ID="${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}" \
-            --dart-define=FIREBASE_PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}" \
-            --dart-define=FIREBASE_AUTH_DOMAIN="${{ secrets.FIREBASE_AUTH_DOMAIN }}" \
-            --dart-define=CERTIFICATION_API_URL="${{ secrets.CERTIFICATION_API_URL }}"
+          set -euo pipefail
+
+          # Supprime les retours à la ligne ajoutés accidentellement lors du
+          # copier-coller d’un secret GitHub, puis retire les espaces aux extrémités.
+          clean_value() {
+            printf '%s' "$1" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+          }
+
+          DROBOT_API_URL="$(clean_value "$DROBOT_API_URL_RAW")"
+          FIREBASE_API_KEY="$(clean_value "$FIREBASE_API_KEY_RAW")"
+          FIREBASE_APP_ID="$(clean_value "$FIREBASE_APP_ID_RAW")"
+          FIREBASE_MESSAGING_SENDER_ID="$(clean_value "$FIREBASE_MESSAGING_SENDER_ID_RAW")"
+          FIREBASE_PROJECT_ID="$(clean_value "$FIREBASE_PROJECT_ID_RAW")"
+          FIREBASE_AUTH_DOMAIN="$(clean_value "$FIREBASE_AUTH_DOMAIN_RAW")"
+          CERTIFICATION_API_URL="$(clean_value "$CERTIFICATION_API_URL_RAW")"
+
+          required_vars=(
+            FIREBASE_API_KEY
+            FIREBASE_APP_ID
+            FIREBASE_MESSAGING_SENDER_ID
+            FIREBASE_PROJECT_ID
+            FIREBASE_AUTH_DOMAIN
+            CERTIFICATION_API_URL
+          )
+
+          for var_name in "${required_vars[@]}"; do
+            if [[ -z "${!var_name}" ]]; then
+              echo "::error::Le secret GitHub $var_name est absent ou vide."
+              exit 1
+            fi
+            echo "::add-mask::${!var_name}"
+          done
+
+          if [[ -n "$DROBOT_API_URL" ]]; then
+            echo "::add-mask::$DROBOT_API_URL"
+          fi
+
+          dart_defines=(
+            "--dart-define=EMAILJS_SERVICE_ID=service_726u54k"
+            "--dart-define=EMAILJS_TEMPLATE_ID=template_9y2rmzx"
+            "--dart-define=EMAILJS_PUBLIC_KEY=fxWkKI41fWVZAmts5"
+            "--dart-define=DROBOT_API_URL=$DROBOT_API_URL"
+            "--dart-define=FIREBASE_API_KEY=$FIREBASE_API_KEY"
+            "--dart-define=FIREBASE_APP_ID=$FIREBASE_APP_ID"
+            "--dart-define=FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID"
+            "--dart-define=FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID"
+            "--dart-define=FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN"
+            "--dart-define=CERTIFICATION_API_URL=$CERTIFICATION_API_URL"
+          )
+
+          flutter build apk --release "${dart_defines[@]}"
 
       - name: Compiler l’AAB Release
+        shell: bash
+        env:
+          DROBOT_API_URL_RAW: ${{ secrets.DROBOT_API_URL }}
+          FIREBASE_API_KEY_RAW: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID_RAW: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MESSAGING_SENDER_ID_RAW: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_PROJECT_ID_RAW: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_AUTH_DOMAIN_RAW: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          CERTIFICATION_API_URL_RAW: ${{ secrets.CERTIFICATION_API_URL }}
         run: |
-          flutter build appbundle --release \
-            --dart-define=EMAILJS_SERVICE_ID=service_726u54k \
-            --dart-define=EMAILJS_TEMPLATE_ID=template_9y2rmzx \
-            --dart-define=EMAILJS_PUBLIC_KEY=fxWkKI41fWVZAmts5 \
-            --dart-define=DROBOT_API_URL="${{ secrets.DROBOT_API_URL }}" \
-            --dart-define=FIREBASE_API_KEY="${{ secrets.FIREBASE_API_KEY }}" \
-            --dart-define=FIREBASE_APP_ID="${{ secrets.FIREBASE_APP_ID }}" \
-            --dart-define=FIREBASE_MESSAGING_SENDER_ID="${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}" \
-            --dart-define=FIREBASE_PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}" \
-            --dart-define=FIREBASE_AUTH_DOMAIN="${{ secrets.FIREBASE_AUTH_DOMAIN }}" \
-            --dart-define=CERTIFICATION_API_URL="${{ secrets.CERTIFICATION_API_URL }}"
+          set -euo pipefail
+
+          clean_value() {
+            printf '%s' "$1" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+          }
+
+          DROBOT_API_URL="$(clean_value "$DROBOT_API_URL_RAW")"
+          FIREBASE_API_KEY="$(clean_value "$FIREBASE_API_KEY_RAW")"
+          FIREBASE_APP_ID="$(clean_value "$FIREBASE_APP_ID_RAW")"
+          FIREBASE_MESSAGING_SENDER_ID="$(clean_value "$FIREBASE_MESSAGING_SENDER_ID_RAW")"
+          FIREBASE_PROJECT_ID="$(clean_value "$FIREBASE_PROJECT_ID_RAW")"
+          FIREBASE_AUTH_DOMAIN="$(clean_value "$FIREBASE_AUTH_DOMAIN_RAW")"
+          CERTIFICATION_API_URL="$(clean_value "$CERTIFICATION_API_URL_RAW")"
+
+          required_vars=(
+            FIREBASE_API_KEY
+            FIREBASE_APP_ID
+            FIREBASE_MESSAGING_SENDER_ID
+            FIREBASE_PROJECT_ID
+            FIREBASE_AUTH_DOMAIN
+            CERTIFICATION_API_URL
+          )
+
+          for var_name in "${required_vars[@]}"; do
+            if [[ -z "${!var_name}" ]]; then
+              echo "::error::Le secret GitHub $var_name est absent ou vide."
+              exit 1
+            fi
+            echo "::add-mask::${!var_name}"
+          done
+
+          if [[ -n "$DROBOT_API_URL" ]]; then
+            echo "::add-mask::$DROBOT_API_URL"
+          fi
+
+          dart_defines=(
+            "--dart-define=EMAILJS_SERVICE_ID=service_726u54k"
+            "--dart-define=EMAILJS_TEMPLATE_ID=template_9y2rmzx"
+            "--dart-define=EMAILJS_PUBLIC_KEY=fxWkKI41fWVZAmts5"
+            "--dart-define=DROBOT_API_URL=$DROBOT_API_URL"
+            "--dart-define=FIREBASE_API_KEY=$FIREBASE_API_KEY"
+            "--dart-define=FIREBASE_APP_ID=$FIREBASE_APP_ID"
+            "--dart-define=FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID"
+            "--dart-define=FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID"
+            "--dart-define=FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN"
+            "--dart-define=CERTIFICATION_API_URL=$CERTIFICATION_API_URL"
+          )
+
+          flutter build appbundle --release "${dart_defines[@]}"
 
       - name: Publier les fichiers Android
         uses: actions/upload-artifact@v4
